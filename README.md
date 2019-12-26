@@ -1,4 +1,15 @@
-# Scala Rules for Bazel
+# Bloop integration
+
+A very hacky WIP bloop integration with Bazel. It's pretty messy in here but hopefully it won't be for long.
+
+Porting my code from https://github.com/psilospore/rules_scala_bloopy
+
+
+
+
+---
+
+# OG docs
 [![Build Status](https://travis-ci.org/bazelbuild/rules_scala.svg?branch=master)](https://travis-ci.org/bazelbuild/rules_scala) [![Build status](https://badge.buildkite.com/90ce5244556df74db805a3c24a703fb87458396f9e1ddd687e.svg)](https://buildkite.com/bazel/scala-rules-scala-postsubmit) [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/bazelbuild_rules_scala/Lobby)
 
 ## Overview

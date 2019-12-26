@@ -107,6 +107,7 @@ public class GenericWorker {
 
   /** This is expected to be called by a main method */
   public void run(String[] argArray) throws Exception {
+//    System.out.println(Arrays.toString(argArray));
     if (contains(argArray, "--persistent_worker")) {
       runPersistentWorker();
     } else {

@@ -4,6 +4,7 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 load("@bazel_tools//tools/build_defs/repo:jvm.bzl", "jvm_maven_import_external")
 
+
 http_archive(
     name = "com_github_bazelbuild_buildtools",
     sha256 = "cdaac537b56375f658179ee2f27813cac19542443f4722b6730d84e4125355e6",
@@ -43,6 +44,14 @@ specs2_junit_repositories()
 load("//scala/scalafmt:scalafmt.bzl", "scalafmt_default_config", "scalafmt_repositories")
 
 scalafmt_repositories()
+
+#load("//scala/bloop:bloop.bzl", "bloop_repositories")
+
+#bloop_repositories()
+
+load("//3rdparty:workspace.bzl", "maven_dependencies")
+
+maven_dependencies()
 
 scalafmt_default_config()
 
@@ -276,3 +285,4 @@ scala_maven_import_external(
         "https://repo.maven.apache.org/maven2/",
     ],
 )
+

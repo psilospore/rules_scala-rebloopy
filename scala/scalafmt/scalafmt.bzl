@@ -98,3 +98,5 @@ def scalafmt_repositories(
         name = "io_bazel_rules_scala/scalafmt/argparse4j",
         actual = "@argparse4j",
     )
+
+
