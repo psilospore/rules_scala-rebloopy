@@ -92,3 +92,14 @@ def bloop_repositories(
         actual = "@java8-compat",
     )
 
+    _scala_maven_import_external(
+        name = "ipcsocket",
+        artifact = "org.scala-sbt.ipcsocket:ipcsocket:1.0.0",
+        licenses = ["notice"],
+        server_urls = maven_servers,
+    )
+
+    native.bind(
+        name = "io_bazel_rules_scala/sbt/ipcsocket",
+        actual = "@ipcsocket",
+    )

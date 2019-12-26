@@ -24,11 +24,9 @@ scala_binary(
         "//external:io_bazel_rules_scala/bloop/bsp4j",
         "//external:io_bazel_rules_scala/bloop/bloopconfig",
         "//external:io_bazel_rules_scala/bloop/blooplauncher",
-        "//external:io_bazel_rules_scala/bloop/lsp4j-jsonrpc",
+        "//external:io_bazel_rules_scala/bloop/lsp4j-jsonrpc", # why do I need this
+        "//external:io_bazel_rules_scala/sbt/ipcsocket", # ok somethings wrong
         "//external:io_bazel_rules_scala/scala_lang/java8-compat",
-
-
-
     ],
     unused_dependency_checker_mode = "warn", #TODO
 
