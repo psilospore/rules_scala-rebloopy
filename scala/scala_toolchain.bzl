@@ -32,7 +32,7 @@ scala_toolchain = rule(
             values = ["off", "on"],
         ),
         "enable_code_coverage_aspect": attr.string(
-            default = "off",
+            default = "on", #TODO
             values = ["off", "on"],
         ),
         "scalac_jvm_flags": attr.string_list(),

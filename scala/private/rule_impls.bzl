@@ -32,6 +32,8 @@ load(
 )
 load("@io_bazel_rules_scala//scala:jars_to_labels.bzl", "JarsToLabelsInfo")
 load("@bazel_tools//tools/jdk:toolchain_utils.bzl", "find_java_runtime_toolchain", "find_java_toolchain")
+load("//tools:dump.bzl", "dump")
+
 
 _java_extension = ".java"
 
@@ -39,7 +41,7 @@ _scala_extension = ".scala"
 
 _srcjar_extension = ".srcjar"
 
-_empty_coverage_struct = struct(
+empty_coverage_struct = struct(
     instrumented_files = struct(),
     providers = [],
     replacements = {},
@@ -415,6 +417,7 @@ def compile_or_empty(
         unused_dependency_checker_mode,
         unused_dependency_checker_ignored_targets,
         deps_providers):
+
     # We assume that if a srcjar is present, it is not empty
     if len(ctx.files.srcs) + len(srcjars.to_list()) == 0:
         _build_nosrc_jar(ctx)
@@ -423,13 +426,8 @@ def compile_or_empty(
 
         #  no need to build ijar when empty
         return struct(
-            class_jar = ctx.outputs.jar,
-            coverage = _empty_coverage_struct,
+            coverage = empty_coverage_struct,
             full_jars = [ctx.outputs.jar],
-            ijar = ctx.outputs.jar,
-            ijars = [ctx.outputs.jar],
-            java_jar = False,
-            source_jars = [],
             merged_provider = scala_compilation_provider,
         )
     else:
@@ -521,6 +519,8 @@ def compile_or_empty(
         else:
             merged_provider = scala_compilation_provider
 
+#        dump(full_jars, "full_jars")
+
         return struct(
             class_jar = ctx.outputs.jar,
             coverage = coverage,
@@ -533,12 +533,18 @@ def compile_or_empty(
         )
 
 def _create_scala_compilation_provider(ctx, ijar, source_jar, deps_providers):
+    dump(ijar, "ijar")
+    dump(ctx.outputs.jar, "ctx.outputs.jar")
+    dump(deps_providers, "deps_providers")
     exports = []
     if hasattr(ctx.attr, "exports"):
         exports = [dep[JavaInfo] for dep in ctx.attr.exports]
     runtime_deps = []
     if hasattr(ctx.attr, "runtime_deps"):
         runtime_deps = [dep[JavaInfo] for dep in ctx.attr.runtime_deps]
+
+    dump(exports, "exports")
+    dump(runtime_deps, "runtime_deps")
     return JavaInfo(
         output_jar = ctx.outputs.jar,
         compile_jar = ijar,
@@ -771,6 +777,9 @@ def collect_jars_from_common_ctx(
         unused_dependency_checker_is_off = True):
     dependency_analyzer_is_off = is_dependency_analyzer_off(ctx)
 
+
+    print("\n\nTarget label: %s\n\n" % ctx.label)
+
     deps_jars = collect_jars(
         ctx.attr.deps + extra_deps + base_classpath,
         dependency_analyzer_is_off,
@@ -844,7 +853,7 @@ def pack_source_jars(ctx):
 
 def _jacoco_offline_instrument(ctx, input_jar):
     if not ctx.configuration.coverage_enabled or not hasattr(ctx.attr, "_code_coverage_instrumentation_worker"):
-        return _empty_coverage_struct
+        return empty_coverage_struct
 
     output_jar = ctx.actions.declare_file(
         "{}-offline.jar".format(input_jar.basename.split(".")[0]),

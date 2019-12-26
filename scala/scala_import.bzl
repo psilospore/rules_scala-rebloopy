@@ -1,5 +1,6 @@
 load("@io_bazel_rules_scala//scala:jars_to_labels.bzl", "JarsToLabelsInfo")
 
+
 #intellij part is tested manually, tread lightly when changing there
 #if you change make sure to manually re-import an intellij project and see imports
 #are resolved (not red) and clickable
