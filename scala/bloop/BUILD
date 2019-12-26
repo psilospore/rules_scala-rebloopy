@@ -25,6 +25,8 @@ scala_binary(
         "//external:io_bazel_rules_scala/bloop/bloopconfig",
         "//external:io_bazel_rules_scala/bloop/blooplauncher",
         "//external:io_bazel_rules_scala/bloop/lsp4j-jsonrpc",
+        "//external:io_bazel_rules_scala/scala_lang/java8-compat",
+
 
 
     ],
