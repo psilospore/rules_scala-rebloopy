@@ -100,15 +100,3 @@ def scalafmt_repositories(
     )
 
 
-    _scala_maven_import_external(
-        name = "bsp4j",
-        artifact = "ch.epfl.scala:bsp4j:2.0.0-M4+10-61e61e87",
-        licenses = ["notice"],
-        server_urls = maven_servers,
-    )
-
-    native.bind(
-        name = "io_bazel_rules_scala/bloop/bsp4j",
-        actual = "@bsp4j",
-    )
-

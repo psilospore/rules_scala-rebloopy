@@ -20,7 +20,13 @@ scala_binary(
     visibility = ["//visibility:public"],
     deps = [
         "//src/java/io/bazel/rulesscala/worker",
-        "@scalafmt//:net_sourceforge_argparse4j_argparse4j",
+        "@scalafmt//:net_sourceforge_argparse4j_argparse4j", #TODO move
+        "//external:io_bazel_rules_scala/bloop/bsp4j",
+        "//external:io_bazel_rules_scala/bloop/bloopconfig",
+        "//external:io_bazel_rules_scala/bloop/blooplauncher",
+        "//external:io_bazel_rules_scala/bloop/lsp4j-jsonrpc",
+
+
     ],
     unused_dependency_checker_mode = "warn", #TODO
 

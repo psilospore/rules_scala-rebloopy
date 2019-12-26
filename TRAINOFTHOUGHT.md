@@ -1,5 +1,10 @@
 # Ignore this
 
+Find dep name
+```
+bazel query '//external:*' | grep bsp
+```
+
 See https://github.com/bazelbuild/rules_scala/pull/865/files
 
 Basically scala_library.bzl and scala_compile.bzl have an impl function that call

@@ -7,18 +7,19 @@ import io.bazel.rulesscala.worker.{GenericWorker, Processor}
 import net.sourceforge.argparse4j.ArgumentParsers
 import net.sourceforge.argparse4j.impl.Arguments
 
+import bloop.config.{Config => BloopConfig}
+import bloop.launcher.LauncherStatus.SuccessfulRun
+import bloop.launcher.{Launcher => BloopLauncher}
+import bloop.launcher.bsp.BspBridge
+import org.eclipse.lsp4j.jsonrpc.{Launcher => LspLauncher}
+
 import scala.io.Codec
 
 //TODO consider dedup with ScalaFmtRunner
 
 object BloopRunner extends GenericWorker(new BloopProcessor){
   def main(args: Array[String]) {
-    try run(args)
-    catch {
-      case x: Exception =>
-        x.printStackTrace()
-        System.exit(1)
-    }
+    run(args)
   }
 }
 

@@ -43,6 +43,11 @@ load("//scala/scalafmt:scalafmt.bzl", "scalafmt_default_config", "scalafmt_repos
 
 scalafmt_repositories()
 
+load("//scala/bloop:bloop.bzl", "bloop_repositories")
+
+bloop_repositories()
+
+
 scalafmt_default_config()
 
 RULES_JVM_EXTERNAL_TAG = "2.9"
