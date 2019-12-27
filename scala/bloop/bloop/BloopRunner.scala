@@ -31,13 +31,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Promise
 import scala.io.Codec
 
-//TODO consider dedup with ScalaFmtRunner
 
 trait BloopServer extends BuildServer with ScalaBuildServer
 
 object BloopRunner extends GenericWorker(new BloopProcessor){
   private[this] var bloopServer: BloopServer = null
-
 
   //At the moment just print results
   val printClient = new BuildClient {
@@ -60,17 +58,17 @@ object BloopRunner extends GenericWorker(new BloopProcessor){
   }
 
   def main(args: Array[String]) {
-    init()
+    initBloop()
     run(args)
   }
 
-  def init(): Unit = {
+  def initBloop(): Unit = {
     val emptyInputStream = new InputStream() {
       override def read(): Int = -1
     }
 
     val dir = Files.createTempDirectory(s"bsp-launcher")
-    //TODO java.lang.NoClassDefFoundError: org/scalasbt/ipcsocket/UnixDomainSocket
+    //TODO java.lang.NoClassDefFoundError: org/scalasbt/ipcsocket/UnixDomainSocket somethings wrong in how I specified my deps
     val bspBridge = new BspBridge(
       emptyInputStream,
       System.out,
@@ -118,6 +116,8 @@ object BloopRunner extends GenericWorker(new BloopProcessor){
 }
 
 class BloopProcessor extends Processor {
+
+  //Does this run once per target? if so create a bloop config and create compile request here
   override def processRequest(args: util.List[String]): Unit = {
     var argsArrayBuffer = scala.collection.mutable.ArrayBuffer[String]()
     for (i <- 0 to args.size-1) {
@@ -126,7 +126,8 @@ class BloopProcessor extends Processor {
 
     println("HELLO")
 
-    val parser = ArgumentParsers.newFor("scalafmt").addHelp(true).defaultFormatWidth(80).fromFilePrefix("@").build
+    //TODO could pass in everything needed for creating bloop config
+    val parser = ArgumentParsers.newFor("bloop").addHelp(true).defaultFormatWidth(80).fromFilePrefix("@").build
     parser.addArgument("--someFile").required(true).`type`(Arguments.fileType)
 
     val namespace = parser.parseArgsOrFail(argsArrayBuffer.toArray)
