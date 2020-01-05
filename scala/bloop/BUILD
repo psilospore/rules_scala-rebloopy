@@ -21,11 +21,11 @@ scala_binary(
     deps = [
         "//src/java/io/bazel/rulesscala/worker",
         "@scalafmt//:net_sourceforge_argparse4j_argparse4j", #TODO move
-        "//external:io_bazel_rules_scala/bloop/bsp4j",
-        "//external:io_bazel_rules_scala/bloop/bloopconfig",
-        "//external:io_bazel_rules_scala/bloop/blooplauncher",
-        "//external:io_bazel_rules_scala/bloop/lsp4j-jsonrpc", # why do I need this
-        "//external:io_bazel_rules_scala/sbt/ipcsocket", # ok somethings wrong
+        "//3rdparty/jvm/ch/epfl/scala:bsp4j",
+        "//3rdparty/jvm/ch/epfl/scala:bloop_config",
+        "//3rdparty/jvm/ch/epfl/scala:bloop_launcher",
+#        "//external:io_bazel_rules_scala/bloop/lsp4j-jsonrpc", # why do I need this
+#        "//external:io_bazel_rules_scala/sbt/ipcsocket", # ok somethings wrong
         "//external:io_bazel_rules_scala/scala_lang/java8-compat",
     ],
     unused_dependency_checker_mode = "warn", #TODO

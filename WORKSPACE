@@ -47,6 +47,9 @@ load("//scala/bloop:bloop.bzl", "bloop_repositories")
 
 bloop_repositories()
 
+load("//3rdparty:workspace.bzl", "maven_dependencies")
+
+maven_dependencies()
 
 scalafmt_default_config()
 
@@ -272,3 +275,4 @@ scala_maven_import_external(
         "https://repo.maven.apache.org/maven2/",
     ],
 )
+
