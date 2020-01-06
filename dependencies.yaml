@@ -1,6 +1,7 @@
 options:
   languages: ["java", "scala:2.12.8"]
   versionConflictPolicy: "highest"
+  strictVisibility: false
   buildHeader:
     - load("//scala:scala.bzl", "scala_binary", "scala_library")
     - load("//scala:scala_import.bzl", "scala_import")
@@ -26,6 +27,10 @@ options:
       target:
         "@io_bazel_rules_scala_scala_xml//:io_bazel_rules_scala_scala_xml"
 dependencies:
+  net.sourceforge.argparse4j:
+    argparse4j:
+      version: 0.8.1
+      lang: java
   org.scala-lang.modules:
     scala-java8-compat:
       version: 0.8.0

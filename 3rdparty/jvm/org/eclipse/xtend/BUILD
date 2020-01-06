@@ -8,7 +8,7 @@ java_library(
         ":org_eclipse_xtend_lib_macro"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 
@@ -21,7 +21,7 @@ java_library(
         "//external:jar/org/eclipse/xtend/org_eclipse_xtend_lib_macro"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 

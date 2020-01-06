@@ -26,7 +26,7 @@ java_library(
         ":coursier_core_2_12"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 
@@ -40,7 +40,7 @@ java_library(
         "//external:jar/io/get_coursier/coursier_core_2_12"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 

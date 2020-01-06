@@ -6,7 +6,7 @@ java_library(
         "//external:jar/com/google/j2objc/j2objc_annotations"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 

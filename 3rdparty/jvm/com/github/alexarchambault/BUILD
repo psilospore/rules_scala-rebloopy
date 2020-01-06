@@ -9,7 +9,7 @@ java_library(
         "//external:jar/com/github/alexarchambault/argonaut_shapeless_6_2_2_12"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 

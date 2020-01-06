@@ -7,7 +7,7 @@ java_library(
         "//external:jar/org/spire_math/jawn_parser_2_12"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 

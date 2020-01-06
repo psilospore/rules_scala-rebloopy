@@ -6,7 +6,7 @@ java_library(
         "//external:jar/org/scala_lang/scala_library"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 
@@ -19,7 +19,7 @@ java_library(
         ":scala_library"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 

@@ -9,7 +9,7 @@ java_library(
         ":circe_numbers_2_12"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 
@@ -23,7 +23,7 @@ java_library(
         ":circe_core_2_12"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 
@@ -38,7 +38,7 @@ java_library(
         ":circe_core_2_12"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 
@@ -51,7 +51,7 @@ java_library(
         "//external:jar/io/circe/circe_numbers_2_12"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 
@@ -66,7 +66,7 @@ java_library(
         ":circe_jawn_2_12"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 

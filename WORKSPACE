@@ -43,9 +43,9 @@ load("//scala/scalafmt:scalafmt.bzl", "scalafmt_default_config", "scalafmt_repos
 
 scalafmt_repositories()
 
-load("//scala/bloop:bloop.bzl", "bloop_repositories")
+#load("//scala/bloop:bloop.bzl", "bloop_repositories")
 
-bloop_repositories()
+#bloop_repositories()
 
 load("//3rdparty:workspace.bzl", "maven_dependencies")
 

@@ -22,7 +22,7 @@ java_library(
         "//external:jar/org/scala_lang/modules/scala_xml_2_12"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 

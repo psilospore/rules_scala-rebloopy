@@ -7,7 +7,7 @@ java_library(
         "//external:jar/com/zaxxer/nuprocess"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 

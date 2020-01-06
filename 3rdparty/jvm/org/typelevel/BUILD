@@ -10,7 +10,7 @@ java_library(
         ":machinist_2_12"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 
@@ -23,7 +23,7 @@ java_library(
         "//external:jar/org/typelevel/cats_kernel_2_12"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 
@@ -37,7 +37,7 @@ java_library(
         ":machinist_2_12"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 
@@ -51,7 +51,7 @@ java_library(
         "//external:jar/org/typelevel/machinist_2_12"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 
@@ -64,7 +64,7 @@ java_library(
         "//external:jar/org/typelevel/macro_compat_2_12"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 

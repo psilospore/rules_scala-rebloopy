@@ -8,7 +8,7 @@ java_library(
         ":org_eclipse_lsp4j_jsonrpc"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 
@@ -21,7 +21,7 @@ java_library(
         "//external:jar/org/eclipse/lsp4j/org_eclipse_lsp4j_jsonrpc"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 

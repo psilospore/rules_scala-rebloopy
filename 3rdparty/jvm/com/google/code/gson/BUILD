@@ -6,7 +6,7 @@ java_library(
         "//external:jar/com/google/code/gson/gson"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 

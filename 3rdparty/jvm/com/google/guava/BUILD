@@ -6,7 +6,7 @@ java_library(
         "//external:jar/com/google/guava/failureaccess"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 
@@ -25,7 +25,7 @@ java_library(
         ":listenablefuture"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 
@@ -37,7 +37,7 @@ java_library(
         "//external:jar/com/google/guava/listenablefuture"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 

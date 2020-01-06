@@ -68,7 +68,6 @@ object BloopRunner extends GenericWorker(new BloopProcessor){
     }
 
     val dir = Files.createTempDirectory(s"bsp-launcher")
-    //TODO java.lang.NoClassDefFoundError: org/scalasbt/ipcsocket/UnixDomainSocket somethings wrong in how I specified my deps
     val bspBridge = new BspBridge(
       emptyInputStream,
       System.out,
@@ -128,7 +127,9 @@ class BloopProcessor extends Processor {
 
     //TODO could pass in everything needed for creating bloop config
     val parser = ArgumentParsers.newFor("bloop").addHelp(true).defaultFormatWidth(80).fromFilePrefix("@").build
-    parser.addArgument("--someFile").required(true).`type`(Arguments.fileType)
+//    parser.addArgument("--someFile").required(true).`type`(Arguments.fileType)
+    parser.addArgument("--label").required(true).`type`(Arguments.fileType)
+
 
     val namespace = parser.parseArgsOrFail(argsArrayBuffer.toArray)
 

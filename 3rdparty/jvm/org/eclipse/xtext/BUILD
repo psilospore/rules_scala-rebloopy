@@ -7,7 +7,7 @@ java_library(
         "//external:jar/org/eclipse/xtext/org_eclipse_xtext_xbase_lib"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 

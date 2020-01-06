@@ -8,7 +8,7 @@ java_library(
         "//external:jar/org/scala_sbt/ipcsocket/ipcsocket"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 

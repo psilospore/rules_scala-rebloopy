@@ -8,7 +8,7 @@ java_library(
         "//external:jar/com/chuusai/shapeless_2_12"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 

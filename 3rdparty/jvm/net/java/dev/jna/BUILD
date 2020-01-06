@@ -6,7 +6,7 @@ java_library(
         "//external:jar/net/java/dev/jna/jna"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 
@@ -19,7 +19,7 @@ java_library(
         ":jna"
     ],
     visibility = [
-        "//3rdparty/jvm:__subpackages__"
+        "//visibility:public"
     ]
 )
 
