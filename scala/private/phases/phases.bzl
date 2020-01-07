@@ -60,6 +60,7 @@ load("@io_bazel_rules_scala//scala/private:phases/phase_declare_executable.bzl",
 load("@io_bazel_rules_scala//scala/private:phases/phase_merge_jars.bzl", _phase_merge_jars = "phase_merge_jars")
 load("@io_bazel_rules_scala//scala/private:phases/phase_jvm_flags.bzl", _phase_jvm_flags = "phase_jvm_flags")
 load("@io_bazel_rules_scala//scala/private:phases/phase_coverage_runfiles.bzl", _phase_coverage_runfiles = "phase_coverage_runfiles")
+load("@io_bazel_rules_scala//scala/private:phases/phase_scalafmt.bzl", _phase_scalafmt = "phase_scalafmt")
 
 # API
 run_phases = _run_phases
@@ -124,6 +125,9 @@ phase_common_compile = _phase_common_compile
 phase_library_runfiles = _phase_library_runfiles
 phase_scalatest_runfiles = _phase_scalatest_runfiles
 phase_common_runfiles = _phase_common_runfiles
+
+# scalafmt
+phase_scalafmt = _phase_scalafmt
 
 # final
 phase_binary_final = _phase_binary_final
