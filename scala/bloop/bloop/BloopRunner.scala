@@ -15,7 +15,6 @@ import bloop.launcher.bsp.BspBridge
 import bloop.launcher.core.Shell
 import ch.epfl.scala.bsp4j.{BuildClient, BuildServer, DidChangeBuildTarget, LogMessageParams, PublishDiagnosticsParams, ScalaBuildServer, ShowMessageParams, TaskFinishParams, TaskProgressParams, TaskStartParams}
 import org.eclipse.lsp4j.jsonrpc.{Launcher => LspLauncher}
-
 import ch.epfl.scala.bsp4j._
 import bloop.config.{Config => BloopConfig}
 import bloop.launcher.LauncherStatus.SuccessfulRun
@@ -27,9 +26,9 @@ import scala.compat.java8.FutureConverters._
 import scala.collection.JavaConverters._
 import scala.concurrent.Promise
 import scala.concurrent.ExecutionContext.Implicits.global
-
 import scala.concurrent.Promise
 import scala.io.Codec
+import scala.util.Try
 
 
 trait BloopServer extends BuildServer with ScalaBuildServer
@@ -58,6 +57,7 @@ object BloopRunner extends GenericWorker(new BloopProcessor){
   }
 
   def main(args: Array[String]) {
+//    println("blooprunner")
     initBloop()
     run(args)
   }
@@ -70,9 +70,9 @@ object BloopRunner extends GenericWorker(new BloopProcessor){
     val dir = Files.createTempDirectory(s"bsp-launcher")
     val bspBridge = new BspBridge(
       emptyInputStream,
-      System.out,
+      System.err,
       Promise[Unit](),
-      System.out,
+      System.err,
       Shell.default,
       dir
     )
@@ -95,7 +95,7 @@ object BloopRunner extends GenericWorker(new BloopProcessor){
 
         printClient.onConnectWithServer(bloopServer)
 
-        println("attempting build initialize")
+        System.err.println("attempting build initialize")
 
         val initBuildParams = new InitializeBuildParams(
           "bsp",
@@ -106,9 +106,10 @@ object BloopRunner extends GenericWorker(new BloopProcessor){
         )
 
         bloopServer.buildInitialize(initBuildParams).toScala.foreach(initializeResults => {
-          println(s"initialized: Results $initializeResults")
+          System.err.println(s"initialized: Results $initializeResults")
           bloopServer.onBuildInitialized()
         })
+
       }
     }
   }
@@ -123,18 +124,20 @@ class BloopProcessor extends Processor {
       argsArrayBuffer += args.get(i)
     }
 
-    println("HELLO")
+    System.err.println("HELLO")
 
     //TODO could pass in everything needed for creating bloop config
     val parser = ArgumentParsers.newFor("bloop").addHelp(true).defaultFormatWidth(80).fromFilePrefix("@").build
-//    parser.addArgument("--someFile").required(true).`type`(Arguments.fileType)
-    parser.addArgument("--label").required(true).`type`(Arguments.fileType)
+//    parser.addArgument("--flagfile").`type`(Arguments.fileType)
+//    parser.addArgument("output").`type`(Arguments.fileType)
+//    parser.addArgument("--config").required(true).`type`(Arguments.fileType)
+    parser.addArgument("--label").required(true)
 
 
     val namespace = parser.parseArgsOrFail(argsArrayBuffer.toArray)
 
-    val source = namespace.get[File]("--someFile")
-    println(source)
+    val label = namespace.getString("--label")
+    System.err.println(label)
 
   }
 }

@@ -9,10 +9,20 @@
 #            ("collect_jars", phase_common_collect_jars),
 def phase_bloop(ctx, p):
     args = ctx.actions.args()
+    labelName = ctx.label.name
     args.add("--label")
-    args.add(ctx.label)
+    args.add(labelName)
+    args.add("--flagfile=/Users/syedajafri/dev/bazelExample/flagfile.txt")
+#    args.add("/Users/syedajafri/dev/bazelExample/flagfile.txt")
+
+
+    args.add(ctx.files.srcs[0].path)
+
+    print("Label %s" % labelName)
+    file = ctx.actions.declare_file("%s.format-test" % labelName)
 
     ctx.actions.run(
+        outputs = [file],
         arguments = [args],
         executable = ctx.executable._bloop, # Run bloop runner with args
         execution_requirements = {"supports-workers": "1"},
