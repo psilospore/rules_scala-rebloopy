@@ -27,11 +27,13 @@ import scala.collection.JavaConverters._
 import scala.concurrent.Promise
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Promise
+import scala.concurrent.duration.Duration
 import scala.io.Codec
 import scala.util.Try
 
 
 trait BloopServer extends BuildServer with ScalaBuildServer
+
 
 object BloopRunner extends GenericWorker(new BloopProcessor){
   private[this] var bloopServer: BloopServer = null
@@ -105,10 +107,12 @@ object BloopRunner extends GenericWorker(new BloopProcessor){
           new BuildClientCapabilities(List("scala").asJava)
         )
 
-        bloopServer.buildInitialize(initBuildParams).toScala.foreach(initializeResults => {
+        val cf = bloopServer.buildInitialize(initBuildParams).toScala.map(initializeResults => {
           System.err.println(s"initialized: Results $initializeResults")
           bloopServer.onBuildInitialized()
         })
+
+        scala.concurrent.Await.result(cf, Duration.Inf)
 
       }
     }
@@ -118,7 +122,7 @@ object BloopRunner extends GenericWorker(new BloopProcessor){
 class BloopProcessor extends Processor {
 
   //Does this run once per target? if so create a bloop config and create compile request here
-  override def processRequest(args: util.List[String]): Unit = {
+  override def processRequest(args: util.List[String]) = {
     var argsArrayBuffer = scala.collection.mutable.ArrayBuffer[String]()
     for (i <- 0 to args.size-1) {
       argsArrayBuffer += args.get(i)
@@ -128,10 +132,8 @@ class BloopProcessor extends Processor {
 
     //TODO could pass in everything needed for creating bloop config
     val parser = ArgumentParsers.newFor("bloop").addHelp(true).defaultFormatWidth(80).fromFilePrefix("@").build
-//    parser.addArgument("--flagfile").`type`(Arguments.fileType)
-//    parser.addArgument("output").`type`(Arguments.fileType)
-//    parser.addArgument("--config").required(true).`type`(Arguments.fileType)
     parser.addArgument("--label").required(true)
+//    val srcs = parser.getList[File]("sources").asScala.toList.map(_.toPath)
 
 
     val namespace = parser.parseArgsOrFail(argsArrayBuffer.toArray)

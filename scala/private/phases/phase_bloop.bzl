@@ -10,23 +10,35 @@
 def phase_bloop(ctx, p):
     args = ctx.actions.args()
     labelName = ctx.label.name
+
+#    args_file = ctx.actions.declare_file(labelName + ".args")
+
+#    ctx.actions.write(
+#        output = args_file,
+#        content = "\n".join([               # the contents of the args file
+#            "--label", labelName # , "--sources", args.add(ctx.files.srcs)
+#        ])
+#    )
+#
+#    print(args_file.path)
+
+    args = ctx.actions.args()
     args.add("--label")
     args.add(labelName)
-    args.add("--flagfile=/Users/syedajafri/dev/bazelExample/flagfile.txt")
-#    args.add("/Users/syedajafri/dev/bazelExample/flagfile.txt")
+    args.set_param_file_format("multiline")
+    args.use_param_file("@%s", use_always = True)
 
 
-    args.add(ctx.files.srcs[0].path)
 
     print("Label %s" % labelName)
     file = ctx.actions.declare_file("%s.format-test" % labelName)
 
     ctx.actions.run(
         outputs = [file],
-        arguments = [args],
+        arguments = ["--jvm_flag=-Dfile.encoding=UTF-8", args],
         executable = ctx.executable._bloop, # Run bloop runner with args
         execution_requirements = {"supports-workers": "1"},
-        mnemonic = "bloop",
+        mnemonic = "Bloop"
     )
 
     ctx.actions.write(
