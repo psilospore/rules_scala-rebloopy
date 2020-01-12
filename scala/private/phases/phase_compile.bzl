@@ -131,6 +131,8 @@ def _phase_compile(
         deps_providers,
     )
 
+    print("Compiling %s" % ctx.label.name)
+
     return struct(
         class_jar = out.class_jar,
         coverage = out.coverage,

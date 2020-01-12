@@ -128,17 +128,18 @@ class BloopProcessor extends Processor {
       argsArrayBuffer += args.get(i)
     }
 
-    System.err.println("HELLO")
+    System.err.println(s"Process request $args")
 
     //TODO could pass in everything needed for creating bloop config
     val parser = ArgumentParsers.newFor("bloop").addHelp(true).defaultFormatWidth(80).fromFilePrefix("@").build
     parser.addArgument("--label").required(true)
-//    val srcs = parser.getList[File]("sources").asScala.toList.map(_.toPath)
+    parser.addArgument("--sources").required(true)
 
 
     val namespace = parser.parseArgsOrFail(argsArrayBuffer.toArray)
 
     val label = namespace.getString("--label")
+//    val srcs = parser.getList[File]("sources").asScala.toList.map(_.toPath)
     System.err.println(label)
 
   }
