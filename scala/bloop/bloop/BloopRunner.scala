@@ -133,7 +133,9 @@ class BloopProcessor extends Processor {
     //TODO could pass in everything needed for creating bloop config
     val parser = ArgumentParsers.newFor("bloop").addHelp(true).defaultFormatWidth(80).fromFilePrefix("@").build
     parser.addArgument("--label").required(true)
-    parser.addArgument("--sources").required(true)
+    parser.addArgument("--sources").`type`(Arguments.fileType)
+    parser.addArgument("--transitive").`type`(Arguments.fileType)
+    parser.addArgument("--compiler_classpath").`type`(Arguments.fileType)
 
 
     val namespace = parser.parseArgsOrFail(argsArrayBuffer.toArray)

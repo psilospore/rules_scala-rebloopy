@@ -144,15 +144,21 @@ def phase_bloop(ctx, p):
 #
 #    print(args_file.path)
 
-    dump(ctx, "ctx")
+#    dump(ctx, "ctx")
+
+#    dump(p, "p")
 
     args = ctx.actions.args()
     args.add("--label")
     args.add(labelName)
     args.add("--sources")
-    args.add_all(depset(ctx.files.srcs, transitive = p.collect_jars.jars2labels.jars_to_labels))
-#    args.add("--compiler_classpath")
-#    args.add_all(p.collect_jars.compile_jars)
+    args.add_joined(ctx.files.srcs, join_with=",")
+    args.add("--transitive")
+    args.add_joined(p.collect_jars.transitive_compile_jars, join_with=",")
+
+    print(p.collect_jars.compile_jars.to_list())
+    args.add("--compiler_classpath")
+    args.add_joined(p.collect_jars.compile_jars, join_with=",")
 #    dump(p.collect_jars.compile_jars, "p.collect_jars.compile_jars")
 
 
