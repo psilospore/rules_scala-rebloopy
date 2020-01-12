@@ -3,6 +3,7 @@ workspace(name = "io_bazel_rules_scala")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
+
 http_archive(
     name = "com_github_bazelbuild_buildtools",
     sha256 = "cdaac537b56375f658179ee2f27813cac19542443f4722b6730d84e4125355e6",
