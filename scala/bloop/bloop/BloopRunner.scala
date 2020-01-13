@@ -136,13 +136,39 @@ class BloopProcessor extends Processor {
     parser.addArgument("--sources").`type`(Arguments.fileType)
     parser.addArgument("--transitive").`type`(Arguments.fileType)
     parser.addArgument("--compiler_classpath").`type`(Arguments.fileType)
-
+    parser.addArgument("--build_file_path").`type`(Arguments.fileType)
+    parser.addArgument("--bloopDir").`type`(Arguments.fileType)
 
     val namespace = parser.parseArgsOrFail(argsArrayBuffer.toArray)
 
-    val label = namespace.getString("--label")
-//    val srcs = parser.getList[File]("sources").asScala.toList.map(_.toPath)
+    val label = namespace.getString("label")
+    val srcs = namespace.getString("sources")
+
+    System.err.println(srcs)
+
     System.err.println(label)
+
+
+
+//    val bloopConfig = BloopConfig.File(
+//      version = BloopConfig.File.LatestVersion,
+//      project = BloopConfig.Project(
+//        name = label,
+//        directory = namespace.get[File]("--bloopDir").toPath.toAbsolutePath,
+//        sources = srcs,
+//        dependencies = List(), //Similar logic as in ZincRunner I think
+//        classpath = scalaJars, //TODO Add classpath of deps. need to filter scalaJars but how do I know?
+//        out = projectOutDir,
+//        classesDir = projectClassesDir,
+//        resources = None,
+//        `scala` = Some(Scala("org.scala-lang", "scala-compiler", "2.12.18", List(), scalaJars, None, None)),
+//        java = None,
+//        sbt = None,
+//        test = None,
+//        platform = None,
+//        resolution = None
+//      )
+//    )
 
   }
 }

@@ -131,7 +131,7 @@ def _dumpstr(root_obj, root_obj_name):
 #            ("collect_jars", phase_common_collect_jars),
 def phase_bloop(ctx, p):
     args = ctx.actions.args()
-    labelName = ctx.label.name
+    labelName = "%s:%s" % (ctx.label.package, ctx.label.name)
 
 #    args_file = ctx.actions.declare_file(labelName + ".args")
 
@@ -147,19 +147,30 @@ def phase_bloop(ctx, p):
 #    dump(ctx, "ctx")
 
 #    dump(p, "p")
+# add _scala_toolchain for
 
     args = ctx.actions.args()
     args.add("--label")
     args.add(labelName)
     args.add("--sources")
     args.add_joined(ctx.files.srcs, join_with=",")
+
+    args.add("--compiler_classpath")
+    args.add_joined([dep.path for dep in p.collect_jars.transitive_compile_jars.to_list() if "external/io_bazel_rules_scala" in dep.owner.workspace_root], join_with=",")
+
     args.add("--transitive")
-    args.add_joined(p.collect_jars.transitive_compile_jars, join_with=",")
+    args.add_joined([dep.path for dep in p.collect_jars.transitive_compile_jars.to_list() if "external/io_bazel_rules_scala" not in dep.owner.workspace_root], join_with=",")
+
+    for dep in p.collect_jars.transitive_compile_jars.to_list():
+        dump(dep.owner.workspace_root, "w")
 
     print(p.collect_jars.compile_jars.to_list())
-    args.add("--compiler_classpath")
-    args.add_joined(p.collect_jars.compile_jars, join_with=",")
-#    dump(p.collect_jars.compile_jars, "p.collect_jars.compile_jars")
+
+
+    args.add("--build_file_path", ctx.build_file_path)
+    args.add("--bloopDir", "/Users/syedajafri/dev/bazelExample/.bloop/") # TODO how can I pass this like in higherkindness? ctx.file.persistence_dir.path)
+
+
 
 
     args.set_param_file_format("multiline")
@@ -167,10 +178,9 @@ def phase_bloop(ctx, p):
 
 
 
-
     print("Label %s" % labelName)
     print("srcs %s" % ctx.files.srcs)
-    file = ctx.actions.declare_file("%s.format-test" % labelName)
+    file = ctx.actions.declare_file("%s.format-test" % ctx.label.name)
 
     ctx.actions.run(
         outputs = [file],

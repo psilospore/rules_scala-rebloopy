@@ -9,10 +9,9 @@ load(
 
 ext_add_phase_bloop = {
     "attrs": {
-#        "config": attr.label(
-#            allow_single_file = [".conf"],
-#            default = "@bloop_default//:config",
-#            doc = "The bloop configuration file.",
+#        "bloopDir": attr.label(
+#            allow_single_file = True,
+#            doc = "Bloop output folder",
 #        ),
         "_bloop": attr.label(
             cfg = "host",
