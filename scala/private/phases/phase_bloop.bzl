@@ -149,26 +149,29 @@ def phase_bloop(ctx, p):
 #    dump(p, "p")
 # add _scala_toolchain for
 
+    ROOT_NAME = "external/io_bazel_rules_scala"
     args = ctx.actions.args()
-    args.add("--label")
-    args.add(labelName)
-    args.add("--sources")
-    args.add_joined(ctx.files.srcs, join_with=",")
+    args.add("--label", labelName)
+    args.add_all("--sources", ctx.files.srcs)
 
     args.add("--compiler_classpath")
-    args.add_joined([dep.path for dep in p.collect_jars.transitive_compile_jars.to_list() if "external/io_bazel_rules_scala" in dep.owner.workspace_root], join_with=",")
+    args.add_joined([dep.path for dep in p.collect_jars.transitive_compile_jars.to_list() if ROOT_NAME in dep.owner.workspace_root], join_with=", ") #TODO just check for empty or not?
 
+#    args.add_all("--compiler_classpath", [dep.path for dep in p.collect_jars.transitive_compile_jars.to_list() if ROOT_NAME in dep.owner.workspace_root]) #TODO just check for empty or not?
+
+    dump(ctx.attr._scala_toolchain[0].files, "_scala_toolchain")
+    print(ctx.attr._scala_toolchain[0].files.to_list()[0].path)
+    print("HI")
     args.add("--transitive")
-    args.add_joined([dep.path for dep in p.collect_jars.transitive_compile_jars.to_list() if "external/io_bazel_rules_scala" not in dep.owner.workspace_root], join_with=",")
+    args.add_joined([dep.path for dep in p.collect_jars.transitive_compile_jars.to_list() if ROOT_NAME not in dep.owner.workspace_root], join_with=", ")
 
-    for dep in p.collect_jars.transitive_compile_jars.to_list():
-        dump(dep.owner.workspace_root, "w")
+#    for dep in p.collect_jars.transitive_compile_jars.to_list():
+#        dump(dep.owner.workspace_root, "w")
 
-    print(p.collect_jars.compile_jars.to_list())
-
+#    print(p.collect_jars.compile_jars.to_list())
 
     args.add("--build_file_path", ctx.build_file_path)
-    args.add("--bloopDir", "/Users/syedajafri/dev/bazelExample/.bloop/") # TODO how can I pass this like in higherkindness? ctx.file.persistence_dir.path)
+    args.add("--bloopDir", "/Users/syedajafri/dev/bazelExample/") # TODO how can I pass this like in higherkindness? ctx.file.persistence_dir.path)
 
 
 

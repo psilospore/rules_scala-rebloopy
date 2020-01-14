@@ -35,3 +35,91 @@ I suppose I would return the same struct
     )
 ```
 
+
+
+So previously things pointed to the real location of sources and coursier artifacts
+
+It's hard to do that now. What if I generate the bloop config files.
+But out will point to .bloop-out/
+.bloop will sym link to bazel-bin/bloop/
+
+Wait but then bloop compile won't work becuase it will point to the bazel sources which don't change. Maybe that is fine.
+
+Every rule will generate a config. Then it will be needed by dependent rules.
+
+So B will generate ABC:B.config and point to ABC:A.config
+
+
+
+```json
+{
+    "version" : "1.1.2",
+    "project" : {
+        "name" : "A",
+        "directory" : "/Users/syedajafri/dev/millworkspace/A", 
+        "sources" : [
+            "/Users/syedajafri/dev/millworkspace/A/src"
+        ],
+        "dependencies" : [
+        ],
+        "classpath" : [
+            "/Users/syedajafri/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.10/scala-library-2.12.10.jar"
+        ],
+        "out" : "/Users/syedajafri/dev/millworkspace/.bloop/out/A",
+        "classesDir" : "/Users/syedajafri/dev/millworkspace/.bloop/out/A/classes",
+        "resources" : [
+            "/Users/syedajafri/dev/millworkspace/A/resources"
+        ],
+        "scala" : {
+            "organization" : "org.scala-lang",
+            "name" : "scala-compiler",
+            "version" : "2.12.10",
+            "options" : [
+            ],
+            "jars" : [
+                "/Users/syedajafri/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.10/scala-compiler-2.12.10.jar",
+                "/Users/syedajafri/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.10/scala-reflect-2.12.10.jar",
+                "/Users/syedajafri/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar",
+                "/Users/syedajafri/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.10/scala-library-2.12.10.jar"
+            ]
+        },
+        "java" : {
+            "options" : [
+            ]
+        },
+        "platform" : {
+            "name" : "jvm",
+            "config" : {
+                "home" : "/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home",
+                "options" : [
+                ]
+            },
+            "mainClass" : [
+            ]
+        },
+        "resolution" : {
+            "modules" : [
+                {
+                    "organization" : "org.scala-lang",
+                    "name" : "scala-library",
+                    "version" : "2.12.10",
+                    "artifacts" : [
+                        {
+                            "name" : "scala-library",
+                            "path" : "/Users/syedajafri/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.10/scala-library-2.12.10.jar"
+                        },
+                        {
+                            "name" : "scala-library",
+                            "classifier" : "sources",
+                            "path" : "/Users/syedajafri/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.10/scala-library-2.12.10-sources.jar"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
+```
+
+
+Hmm seems like I can get the real path of source cna I do that to external?

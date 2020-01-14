@@ -1,7 +1,7 @@
 package io.bazel.rules_scala.bloop
 
 import java.io.{File, InputStream}
-import java.nio.file.Files
+import java.nio.file.{FileSystems, Files, Path, Paths}
 import java.util
 import java.util.concurrent.Executors
 
@@ -20,6 +20,7 @@ import bloop.config.{Config => BloopConfig}
 import bloop.launcher.LauncherStatus.SuccessfulRun
 import bloop.launcher.{Launcher => BloopLauncher}
 import bloop.launcher.bsp.BspBridge
+import net.sourceforge.argparse4j.inf.Namespace
 import org.eclipse.lsp4j.jsonrpc.{Launcher => LspLauncher}
 
 import scala.compat.java8.FutureConverters._
@@ -59,7 +60,9 @@ object BloopRunner extends GenericWorker(new BloopProcessor){
   }
 
   def main(args: Array[String]) {
-//    println("blooprunner")
+//    System.out.println(s"shit: ${args.toList.map(_.toList)}")
+
+    //    println("blooprunner")
     initBloop()
     run(args)
   }
@@ -121,6 +124,18 @@ object BloopRunner extends GenericWorker(new BloopProcessor){
 
 class BloopProcessor extends Processor {
 
+  /**
+   * namespace.getList[File] is bonked
+   * @param str
+   */
+  private def parseFileList(namespace: Namespace, key: String): List[Path] = {
+    val pwd = {
+      val uncleanPath = FileSystems.getDefault().getPath(".").toAbsolutePath.toString
+      uncleanPath.substring(0, uncleanPath.size - 2)
+    }
+    namespace.getString(key).split(", ").toList.map(relPath => Paths.get(s"$pwd/$relPath").toRealPath())
+  }
+
   //Does this run once per target? if so create a bloop config and create compile request here
   override def processRequest(args: util.List[String]) = {
     var argsArrayBuffer = scala.collection.mutable.ArrayBuffer[String]()
@@ -135,40 +150,56 @@ class BloopProcessor extends Processor {
     parser.addArgument("--label").required(true)
     parser.addArgument("--sources").`type`(Arguments.fileType)
     parser.addArgument("--transitive").`type`(Arguments.fileType)
-    parser.addArgument("--compiler_classpath").`type`(Arguments.fileType)
+    parser.addArgument("--compiler_classpath")
     parser.addArgument("--build_file_path").`type`(Arguments.fileType)
     parser.addArgument("--bloopDir").`type`(Arguments.fileType)
+    /**
+     * Process request [
+     * --label, ABC:B,
+     * --sources, ABC/B.scala,
+     * --compiler_classpath, external/io_bazel_rules_scala_scala_library/scala-library-2.11.12.jar,external/io_bazel_rules_scala_scala_reflect/scala-reflect-2.11.12.jar,
+     * --transitive, bazel-out/darwin-fastbuild/bin/ABC/A-ijar.jar,
+     * --build_file_path, ABC/BUILD,
+     * --bloopDir, /Users/syedajafri/dev/bazelExample/.bloop/]
+     * ABC/B.scala
+     * external/io_bazel_rules_scala_scala_library/scala-library-2.11.12.jar,external/io_bazel_rules_scala_scala_reflect/scala-reflect-2.11.12.jar
+     */
 
     val namespace = parser.parseArgsOrFail(argsArrayBuffer.toArray)
 
     val label = namespace.getString("label")
-    val srcs = namespace.getString("sources")
+    val compilerClasspath = parseFileList(namespace, "compiler_classpath")
+    val srcs = parseFileList(namespace, "sources")
 
-    System.err.println(srcs)
+//    System.err.println(srcs.toAbsolutePath)
 
     System.err.println(label)
+    System.err.println(srcs)
 
 
 
-//    val bloopConfig = BloopConfig.File(
-//      version = BloopConfig.File.LatestVersion,
-//      project = BloopConfig.Project(
-//        name = label,
-//        directory = namespace.get[File]("--bloopDir").toPath.toAbsolutePath,
-//        sources = srcs,
-//        dependencies = List(), //Similar logic as in ZincRunner I think
-//        classpath = scalaJars, //TODO Add classpath of deps. need to filter scalaJars but how do I know?
-//        out = projectOutDir,
-//        classesDir = projectClassesDir,
-//        resources = None,
-//        `scala` = Some(Scala("org.scala-lang", "scala-compiler", "2.12.18", List(), scalaJars, None, None)),
-//        java = None,
-//        sbt = None,
-//        test = None,
-//        platform = None,
-//        resolution = None
-//      )
-//    )
+
+    val workspaceDir = namespace.get[File]("bloopDir").toPath
+
+    val bloopConfig = BloopConfig.File(
+      version = BloopConfig.File.LatestVersion,
+      project = BloopConfig.Project(
+        name = label,
+        directory = workspaceDir,
+        sources = srcs,
+        dependencies = List(), //Similar logic as in ZincRunner I think
+        classpath = scalaJars, //TODO Add classpath of deps. need to filter scalaJars but how do I know?
+        out = projectOutDir,
+        classesDir = projectClassesDir,
+        resources = None,
+        `scala` = Some(Scala("org.scala-lang", "scala-compiler", "2.12.18", List(), scalaJars, None, None)),
+        java = None,
+        sbt = None,
+        test = None,
+        platform = None,
+        resolution = None
+      )
+    )
 
   }
 }
