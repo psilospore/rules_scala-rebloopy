@@ -5,6 +5,7 @@ import java.nio.file.{FileSystems, Files, Path, Paths}
 import java.util
 import java.util.concurrent.Executors
 
+import bloop.config.Config.Scala
 import io.bazel.rulesscala.worker.{GenericWorker, Processor}
 import net.sourceforge.argparse4j.ArgumentParsers
 import net.sourceforge.argparse4j.impl.Arguments
@@ -36,7 +37,7 @@ import scala.util.Try
 trait BloopServer extends BuildServer with ScalaBuildServer
 
 
-object BloopRunner extends GenericWorker(new BloopProcessor){
+object BloopRunner extends GenericWorker(new BloopProcessor) {
   private[this] var bloopServer: BloopServer = null
 
   //At the moment just print results
@@ -60,9 +61,8 @@ object BloopRunner extends GenericWorker(new BloopProcessor){
   }
 
   def main(args: Array[String]) {
-//    System.out.println(s"shit: ${args.toList.map(_.toList)}")
+    //    System.out.println(s"shit: ${args.toList.map(_.toList)}")
 
-    //    println("blooprunner")
     initBloop()
     run(args)
   }
@@ -126,6 +126,7 @@ class BloopProcessor extends Processor {
 
   /**
    * namespace.getList[File] is bonked
+   *
    * @param str
    */
   private def parseFileList(namespace: Namespace, key: String): List[Path] = {
@@ -133,13 +134,19 @@ class BloopProcessor extends Processor {
       val uncleanPath = FileSystems.getDefault().getPath(".").toAbsolutePath.toString
       uncleanPath.substring(0, uncleanPath.size - 2)
     }
-    namespace.getString(key).split(", ").toList.map(relPath => Paths.get(s"$pwd/$relPath").toRealPath())
+    Option(namespace.getString(key)).fold(
+      List[Path]()
+    )(
+      _.split(", ").toList.map(
+        relPath => Paths.get(s"$pwd/$relPath").toRealPath()
+      )
+    )
   }
 
   //Does this run once per target? if so create a bloop config and create compile request here
   override def processRequest(args: util.List[String]) = {
     var argsArrayBuffer = scala.collection.mutable.ArrayBuffer[String]()
-    for (i <- 0 to args.size-1) {
+    for (i <- 0 to args.size - 1) {
       argsArrayBuffer += args.get(i)
     }
 
@@ -153,33 +160,26 @@ class BloopProcessor extends Processor {
     parser.addArgument("--compiler_classpath")
     parser.addArgument("--build_file_path").`type`(Arguments.fileType)
     parser.addArgument("--bloopDir").`type`(Arguments.fileType)
-    /**
-     * Process request [
-     * --label, ABC:B,
-     * --sources, ABC/B.scala,
-     * --compiler_classpath, external/io_bazel_rules_scala_scala_library/scala-library-2.11.12.jar,external/io_bazel_rules_scala_scala_reflect/scala-reflect-2.11.12.jar,
-     * --transitive, bazel-out/darwin-fastbuild/bin/ABC/A-ijar.jar,
-     * --build_file_path, ABC/BUILD,
-     * --bloopDir, /Users/syedajafri/dev/bazelExample/.bloop/]
-     * ABC/B.scala
-     * external/io_bazel_rules_scala_scala_library/scala-library-2.11.12.jar,external/io_bazel_rules_scala_scala_reflect/scala-reflect-2.11.12.jar
-     */
 
     val namespace = parser.parseArgsOrFail(argsArrayBuffer.toArray)
 
     val label = namespace.getString("label")
-    val compilerClasspath = parseFileList(namespace, "compiler_classpath")
+    val compilerClasspath = parseFileList(namespace, "compiler_classpath") //TODO just has lib and reflect
     val srcs = parseFileList(namespace, "sources")
+    val transitives = parseFileList(namespace, "transitive")
 
-//    System.err.println(srcs.toAbsolutePath)
+    //    System.err.println(srcs.toAbsolutePath)
 
     System.err.println(label)
     System.err.println(srcs)
 
-
-
-
     val workspaceDir = namespace.get[File]("bloopDir").toPath
+    val bloopDir = workspaceDir.resolve(".bloop").toAbsolutePath
+    val bloopOutDir = bloopDir.resolve("out").toAbsolutePath
+    val projectOutDir = bloopOutDir.resolve(label).toAbsolutePath
+    val projectClassesDir = projectOutDir.resolve("classes").toAbsolutePath
+    val bloopConfigPath = bloopDir.resolve(s"$label.json")
+    Files.createDirectories(projectClassesDir)
 
     val bloopConfig = BloopConfig.File(
       version = BloopConfig.File.LatestVersion,
@@ -187,12 +187,20 @@ class BloopProcessor extends Processor {
         name = label,
         directory = workspaceDir,
         sources = srcs,
-        dependencies = List(), //Similar logic as in ZincRunner I think
-        classpath = scalaJars, //TODO Add classpath of deps. need to filter scalaJars but how do I know?
+        dependencies = List(), //TODO would be ABC:A for ABC:B
+        classpath = transitives,
         out = projectOutDir,
         classesDir = projectClassesDir,
         resources = None,
-        `scala` = Some(Scala("org.scala-lang", "scala-compiler", "2.12.18", List(), scalaJars, None, None)),
+        `scala` = Some(Scala(
+          "org.scala-lang",
+          "scala-compiler",
+          "2.11.12", //TODO
+          List(),
+          compilerClasspath,
+          None,
+          None
+        )),
         java = None,
         sbt = None,
         test = None,
@@ -200,6 +208,11 @@ class BloopProcessor extends Processor {
         resolution = None
       )
     )
+
+    System.err.println("writing to " + bloop.config.toStr(bloopConfig))
+    System.err.println(bloopConfigPath)
+
+    Files.write(bloopConfigPath, bloop.config.toStr(bloopConfig).getBytes)
 
   }
 }

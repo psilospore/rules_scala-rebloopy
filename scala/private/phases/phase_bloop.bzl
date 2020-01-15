@@ -162,8 +162,7 @@ def phase_bloop(ctx, p):
     dump(ctx.attr._scala_toolchain[0].files, "_scala_toolchain")
     print(ctx.attr._scala_toolchain[0].files.to_list()[0].path)
     print("HI")
-    args.add("--transitive")
-    args.add_joined([dep.path for dep in p.collect_jars.transitive_compile_jars.to_list() if ROOT_NAME not in dep.owner.workspace_root], join_with=", ")
+    args.add_joined("--transitive", [dep.path for dep in p.collect_jars.transitive_compile_jars.to_list() if ROOT_NAME not in dep.owner.workspace_root], join_with=", ")
 
 #    for dep in p.collect_jars.transitive_compile_jars.to_list():
 #        dump(dep.owner.workspace_root, "w")
@@ -174,16 +173,14 @@ def phase_bloop(ctx, p):
     args.add("--bloopDir", "/Users/syedajafri/dev/bazelExample/") # TODO how can I pass this like in higherkindness? ctx.file.persistence_dir.path)
 
 
-
-
     args.set_param_file_format("multiline")
     args.use_param_file("@%s", use_always = True)
-
-
 
     print("Label %s" % labelName)
     print("srcs %s" % ctx.files.srcs)
     file = ctx.actions.declare_file("%s.format-test" % ctx.label.name)
+
+    print(args)
 
     ctx.actions.run(
         outputs = [file],
