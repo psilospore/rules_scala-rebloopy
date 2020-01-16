@@ -33,7 +33,6 @@ import scala.concurrent.duration.Duration
 import scala.io.Codec
 import scala.util.Try
 
-
 trait BloopServer extends BuildServer with ScalaBuildServer
 
 

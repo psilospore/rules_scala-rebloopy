@@ -123,3 +123,77 @@ So B will generate ABC:B.config and point to ABC:A.config
 
 
 Hmm seems like I can get the real path of source cna I do that to external?
+
+This works:
+```json
+{
+    "version" : "1.1.2",
+    "project" : {
+        "name" : "ABC:A",
+        "directory" : "/Users/syedajafri/dev/bazelExample/A",
+        "sources" : [
+            "/Users/syedajafri/dev/bazelExample/ABC/A.scala"
+        ],
+        "dependencies" : [
+        ],
+        "classpath" : [
+            "/Users/syedajafri/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.11.12/scala-compiler-2.11.12.jar",
+            "/Users/syedajafri/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar",
+            "/Users/syedajafri/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.12/scala-reflect-2.11.12.jar"
+        ],
+        "out" : "/Users/syedajafri/dev/bazelExample/.bloop/out/ABC:A",
+        "classesDir" : "/Users/syedajafri/dev/bazelExample/.bloop/out/ABC:A/classes",
+        "scala" : {
+            "organization" : "org.scala-lang",
+            "name" : "scala-compiler",
+            "version" : "2.11.12",
+            "options" : [
+            ],
+            "jars" : [
+                "/Users/syedajafri/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.11.12/scala-compiler-2.11.12.jar",
+                "/Users/syedajafri/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar",
+                "/Users/syedajafri/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.12/scala-reflect-2.11.12.jar"
+            ]
+        }
+    }
+}
+
+```
+
+
+But this does not:
+
+
+```json
+{
+    "version" : "1.1.2",
+    "project" : {
+        "name" : "ABC:A",
+        "directory" : "/Users/syedajafri/dev/bazelExample/A",
+        "sources" : [
+            "/Users/syedajafri/dev/bazelExample/ABC/A.scala"
+        ],
+        "dependencies" : [
+        ],
+        "classpath" : [
+            "/private/var/tmp/_bazel_syedajafri/ad86228950bcb07c687f46ad51824bd1/external/io_bazel_rules_scala_scala_compiler/scala-compiler-2.11.12.jar",
+            "/private/var/tmp/_bazel_syedajafri/ad86228950bcb07c687f46ad51824bd1/external/io_bazel_rules_scala_scala_library/scala-library-2.11.12.jar",
+            "/private/var/tmp/_bazel_syedajafri/ad86228950bcb07c687f46ad51824bd1/external/io_bazel_rules_scala_scala_reflect/scala-reflect-2.11.12.jar"
+        ],
+        "out" : "/Users/syedajafri/dev/bazelExample/.bloop/out/ABC:A",
+        "classesDir" : "/Users/syedajafri/dev/bazelExample/.bloop/out/ABC:A/classes",
+        "scala" : {
+            "organization" : "org.scala-lang",
+            "name" : "scala-compiler",
+            "version" : "2.11.12",
+            "options" : [
+            ],
+            "jars" : [
+                "/private/var/tmp/_bazel_syedajafri/ad86228950bcb07c687f46ad51824bd1/external/io_bazel_rules_scala_scala_compiler/scala-compiler-2.11.12.jar",
+                "/private/var/tmp/_bazel_syedajafri/ad86228950bcb07c687f46ad51824bd1/external/io_bazel_rules_scala_scala_library/scala-library-2.11.12.jar",
+                "/private/var/tmp/_bazel_syedajafri/ad86228950bcb07c687f46ad51824bd1/external/io_bazel_rules_scala_scala_reflect/scala-reflect-2.11.12.jar"
+            ]
+        }
+    }
+}
+```
