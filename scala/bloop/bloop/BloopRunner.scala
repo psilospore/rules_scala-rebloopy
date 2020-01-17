@@ -195,7 +195,7 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
         `scala` = Some(Scala(
           "org.scala-lang",
           "scala-compiler",
-          "2.12.12", //TODO
+          "2.12.10", //TODO
           List(),
           compilerClasspath,
           None,
@@ -213,6 +213,15 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
     System.err.println(bloopConfigPath)
 
     Files.write(bloopConfigPath, bloop.config.toStr(bloopConfig).getBytes)
+
+    val buildTargetId = List(new BuildTargetIdentifier(s"file://$workspaceDir?id=$label"))
+    val compileParams = new CompileParams(buildTargetId.asJava)
+
+    Thread.sleep(1000)
+
+
+    bloopServer.buildTargetCompile(compileParams).toScala.onComplete(cr => println(s"Compiled $label! $cr")) //TODO data is null here
+    Thread.sleep(1000)
 
   }
 }
