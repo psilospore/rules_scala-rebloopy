@@ -1,6 +1,8 @@
 load("@io_bazel_rules_scala//scala:jars_to_labels.bzl", "JarsToLabelsInfo")
 load("@io_bazel_rules_scala//scala:plusone.bzl", "PlusOneDeps")
 
+load("//tools:dump.bzl", "dump")
+
 def write_manifest(ctx):
     main_class = getattr(ctx.attr, "main_class", None)
     write_manifest_file(ctx.actions, ctx.outputs.manifest, main_class)
@@ -57,12 +59,16 @@ def _collect_jars_when_dependency_analyzer_is_off(
         plus_one_deps_is_off):
 
     print("in _collect_jars_when_dependency_analyzer_is_off")
+
     compile_jars = []
     plus_one_deps_compile_jars = []
     runtime_jars = []
     jars2labels = {}
 
     deps_providers = []
+
+
+    dump(dep_targets, "dep_targets")
 
     for dep_target in dep_targets:
         # we require a JavaInfo for dependencies
@@ -84,6 +90,13 @@ def _collect_jars_when_dependency_analyzer_is_off(
             plus_one_deps_compile_jars.append(
                 depset(transitive = [dep[JavaInfo].compile_jars for dep in dep_target[PlusOneDeps].direct_deps if JavaInfo in dep]),
             )
+
+
+    dump(compile_jars, "compile_jars")
+    dump(runtime_jars, "runtime_jars")
+    dump(plus_one_deps_compile_jars, "plus_one_deps_compile_jars")
+#    [][1]
+
 
     return struct(
         compile_jars = depset(transitive = compile_jars),

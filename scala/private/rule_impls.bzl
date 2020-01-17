@@ -771,6 +771,9 @@ def collect_jars_from_common_ctx(
         unused_dependency_checker_is_off = True):
     dependency_analyzer_is_off = is_dependency_analyzer_off(ctx)
 
+
+    print("\n\nTarget label: %s\n\n" % ctx.label)
+
     deps_jars = collect_jars(
         ctx.attr.deps + extra_deps + base_classpath,
         dependency_analyzer_is_off,
