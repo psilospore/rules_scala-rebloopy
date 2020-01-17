@@ -113,7 +113,9 @@ object BloopUtil {
 
 }
 
-object BloopRunner extends GenericWorker(new BloopProcessor({BloopUtil.initBloop()})) {
+object BloopRunner extends GenericWorker(new BloopProcessor({
+  BloopUtil.initBloop()
+})) {
 
   def main(args: Array[String]) {
     run(args)
@@ -151,7 +153,6 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
 
     System.err.println(s"Process request $args")
 
-    //TODO could pass in everything needed for creating bloop config
     val parser = ArgumentParsers.newFor("bloop").addHelp(true).defaultFormatWidth(80).fromFilePrefix("@").build
     parser.addArgument("--label").required(true)
     parser.addArgument("--sources").`type`(Arguments.fileType)
@@ -171,7 +172,6 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
     //    System.err.println(srcs.toAbsolutePath)
 
     System.err.println(label)
-    System.err.println(srcs)
 
     val workspaceDir = namespace.get[File]("bloopDir").toPath
     val bloopDir = workspaceDir.resolve(".bloop").toAbsolutePath
@@ -209,19 +209,12 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
       )
     )
 
-    System.err.println("writing to " + bloop.config.toStr(bloopConfig))
-    System.err.println(bloopConfigPath)
-
     Files.write(bloopConfigPath, bloop.config.toStr(bloopConfig).getBytes)
 
     val buildTargetId = List(new BuildTargetIdentifier(s"file://$workspaceDir?id=$label"))
     val compileParams = new CompileParams(buildTargetId.asJava)
 
-    Thread.sleep(1000)
-
-
-    bloopServer.buildTargetCompile(compileParams).toScala.onComplete(cr => println(s"Compiled $label! $cr")) //TODO data is null here
-    Thread.sleep(1000)
+    scala.concurrent.Await.result(bloopServer.buildTargetCompile(compileParams).toScala, Duration.Inf)
 
   }
 }

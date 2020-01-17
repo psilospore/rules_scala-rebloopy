@@ -5,7 +5,10 @@ A very hacky WIP bloop integration with Bazel. It's pretty messy in here but hop
 Porting my code from https://github.com/psilospore/rules_scala_bloopy
 
 
+## TODOs
 
+- [ ] Scala 2.11.12 gives AggreateClassPath not found error if I use the jars in external, but using ones given from `coursier fetch "org.scala-lang:scala-compiler:2.11.12"` works fine
+- [ ] Having trouble getting the compiler classpath
 
 ---
 

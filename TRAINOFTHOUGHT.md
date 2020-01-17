@@ -197,3 +197,11 @@ But this does not:
     }
 }
 ```
+
+
+
+Gave up switched to 2.11.12 and it works
+Seems like the jars are different from `coursier fetch "org.scala-lang:scala-compiler:2.11.12"`
+
+
+I see the compiler classpath is available for unused_deps_anal
