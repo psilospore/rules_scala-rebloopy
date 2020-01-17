@@ -1,5 +1,5 @@
 load(
-    "//scala:providers.bzl",
+    "//scala:advanced_usage/providers.bzl",
     _ScalaRulePhase = "ScalaRulePhase",
 )
 load(
@@ -42,7 +42,7 @@ ext_add_phase_bloop = {
 def _add_phase_bloop_singleton_implementation(ctx):
     return [
         _ScalaRulePhase(
-            phases = [
+            custom_phases = [
                 #TODO plan is to make it a phase at the end then replace it later. Use phases before compile.
                 #("=", "compile", "bloop", _phase_bloop),
                 ("$", "", "bloop", _phase_bloop)

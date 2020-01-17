@@ -36,9 +36,7 @@ import scala.util.Try
 trait BloopServer extends BuildServer with ScalaBuildServer
 
 
-object BloopRunner extends GenericWorker(new BloopProcessor) {
-  private[this] var bloopServer: BloopServer = null
-
+object BloopUtil {
   //At the moment just print results
   val printClient = new BuildClient {
     override def onBuildShowMessage(params: ShowMessageParams): Unit = println("onBuildShowMessage", params)
@@ -59,14 +57,7 @@ object BloopRunner extends GenericWorker(new BloopProcessor) {
     override def onBuildTargetDidChange(params: DidChangeBuildTarget): Unit = println("onBuildTargetDidChange", params)
   }
 
-  def main(args: Array[String]) {
-    //    System.out.println(s"shit: ${args.toList.map(_.toList)}")
-
-    initBloop()
-    run(args)
-  }
-
-  def initBloop(): Unit = {
+  def initBloop(): BloopServer = {
     val emptyInputStream = new InputStream() {
       override def read(): Int = -1
     }
@@ -95,7 +86,7 @@ object BloopRunner extends GenericWorker(new BloopProcessor) {
           .create()
 
         launcher.startListening()
-        bloopServer = launcher.getRemoteProxy
+        val bloopServer = launcher.getRemoteProxy
 
         printClient.onConnectWithServer(bloopServer)
 
@@ -109,19 +100,28 @@ object BloopRunner extends GenericWorker(new BloopProcessor) {
           new BuildClientCapabilities(List("scala").asJava)
         )
 
-        val cf = bloopServer.buildInitialize(initBuildParams).toScala.map(initializeResults => {
+        bloopServer.buildInitialize(initBuildParams).toScala.map(initializeResults => {
           System.err.println(s"initialized: Results $initializeResults")
           bloopServer.onBuildInitialized()
         })
 
-        scala.concurrent.Await.result(cf, Duration.Inf)
+        bloopServer
 
       }
     }
   }
+
 }
 
-class BloopProcessor extends Processor {
+object BloopRunner extends GenericWorker(new BloopProcessor({BloopUtil.initBloop()})) {
+
+  def main(args: Array[String]) {
+    run(args)
+  }
+
+}
+
+class BloopProcessor(bloopServer: BloopServer) extends Processor {
 
   /**
    * namespace.getList[File] is bonked
@@ -155,7 +155,7 @@ class BloopProcessor extends Processor {
     val parser = ArgumentParsers.newFor("bloop").addHelp(true).defaultFormatWidth(80).fromFilePrefix("@").build
     parser.addArgument("--label").required(true)
     parser.addArgument("--sources").`type`(Arguments.fileType)
-    parser.addArgument("--transitive").`type`(Arguments.fileType)
+    parser.addArgument("--target_classpath").`type`(Arguments.fileType)
     parser.addArgument("--compiler_classpath")
     parser.addArgument("--build_file_path").`type`(Arguments.fileType)
     parser.addArgument("--bloopDir").`type`(Arguments.fileType)
@@ -163,9 +163,10 @@ class BloopProcessor extends Processor {
     val namespace = parser.parseArgsOrFail(argsArrayBuffer.toArray)
 
     val label = namespace.getString("label")
-    val compilerClasspath = parseFileList(namespace, "compiler_classpath") //TODO just has lib and reflect
+    val compilerClasspath = Paths.get("/private/var/tmp/_bazel_syedajafri/ad86228950bcb07c687f46ad51824bd1/external/io_bazel_rules_scala_scala_compiler/scala-compiler-2.12.10.jar") ::
+      parseFileList(namespace, "compiler_classpath") //TODO just has lib and reflect
     val srcs = parseFileList(namespace, "sources")
-    val transitives = parseFileList(namespace, "transitive")
+    val classpath = parseFileList(namespace, "target_classpath")
 
     //    System.err.println(srcs.toAbsolutePath)
 
@@ -187,14 +188,14 @@ class BloopProcessor extends Processor {
         directory = workspaceDir,
         sources = srcs,
         dependencies = List(), //TODO would be ABC:A for ABC:B
-        classpath = transitives,
+        classpath = classpath,
         out = projectOutDir,
         classesDir = projectClassesDir,
         resources = None,
         `scala` = Some(Scala(
           "org.scala-lang",
           "scala-compiler",
-          "2.11.12", //TODO
+          "2.12.12", //TODO
           List(),
           compilerClasspath,
           None,

@@ -55,6 +55,8 @@ def _collect_jars_when_dependency_analyzer_is_off(
         dep_targets,
         unused_dependency_checker_is_off,
         plus_one_deps_is_off):
+
+    print("in _collect_jars_when_dependency_analyzer_is_off")
     compile_jars = []
     plus_one_deps_compile_jars = []
     runtime_jars = []
@@ -97,6 +99,8 @@ def _collect_jars_when_dependency_analyzer_is_on(dep_targets):
     compile_jars = []
     runtime_jars = []
     deps_providers = []
+
+    print("in _collect_jars_when_dependency_analyzer_is_on")
 
     for dep_target in dep_targets:
         # we require a JavaInfo for dependencies

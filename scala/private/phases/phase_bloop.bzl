@@ -155,14 +155,19 @@ def phase_bloop(ctx, p):
     args.add_all("--sources", ctx.files.srcs)
 
     args.add("--compiler_classpath")
+
+#    dump(p.collect_jars, "p.collect_jars")
+#    dump(p.collect_jars.deps_providers, "HIII")
+
     args.add_joined([dep.path for dep in p.collect_jars.transitive_compile_jars.to_list() if ROOT_NAME in dep.owner.workspace_root], join_with=", ") #TODO just check for empty or not?
 
 #    args.add_all("--compiler_classpath", [dep.path for dep in p.collect_jars.transitive_compile_jars.to_list() if ROOT_NAME in dep.owner.workspace_root]) #TODO just check for empty or not?
 
-    dump(ctx.attr._scala_toolchain[0].files, "_scala_toolchain")
-    print(ctx.attr._scala_toolchain[0].files.to_list()[0].path)
+    # Not helpful only has scala_library
+#    dump(ctx.attr._scala_toolchain[0].files, "_scala_toolchain")
+#    print(ctx.attr._scala_toolchain[0].files.to_list()[0].path)
     print("HI")
-    args.add_joined("--transitive", [dep.path for dep in p.collect_jars.transitive_compile_jars.to_list() if ROOT_NAME not in dep.owner.workspace_root], join_with=", ")
+    args.add_joined("--target_classpath", p.collect_jars.transitive_compile_jars.to_list(), join_with=", ")
 
 #    for dep in p.collect_jars.transitive_compile_jars.to_list():
 #        dump(dep.owner.workspace_root, "w")
