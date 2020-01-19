@@ -205,3 +205,6 @@ Seems like the jars are different from `coursier fetch "org.scala-lang:scala-com
 
 
 I see the compiler classpath is available for unused_deps_anal
+
+
+Alright so now I got it working for one project

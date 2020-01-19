@@ -18,7 +18,11 @@ scala_binary(
     srcs = glob(["bloop/BloopRunner.scala"]),
     main_class = "io.bazel.rules_scala.bloop.BloopRunner",
     visibility = ["//visibility:public"],
+    #TODO for other scala versions I might have to specify dependencies for jline or scala_xml
     deps = [
+        "//external:io_bazel_rules_scala/dependency/scala/scala_compiler",
+        "//external:io_bazel_rules_scala/dependency/scala/scala_reflect",
+        "//external:io_bazel_rules_scala/dependency/scala/scala_library",
         "//src/java/io/bazel/rulesscala/worker",
         "//3rdparty/jvm/net/sourceforge/argparse4j:argparse4j",
         "//3rdparty/jvm/ch/epfl/scala:bsp4j",
@@ -26,7 +30,7 @@ scala_binary(
         "//3rdparty/jvm/ch/epfl/scala:bloop_launcher",
         "//3rdparty/jvm/org/scala_lang/modules:scala_java8_compat"
     ],
-    unused_dependency_checker_mode = "warn", #TODO
+    unused_dependency_checker_mode = "warn", #TODO I'm using the scala compiler libs but from the classpath
 )
 
 load(

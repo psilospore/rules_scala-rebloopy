@@ -31,8 +31,7 @@ ext_add_phase_bloop = {
 #        ),
     },
     "outputs": {
-        "bloop_runner": "%{name}.format",
-        "bloop_testrunner": "%{name}.format-test",
+        "bloop_runner": "%{name}.bloopOut.txt",
     },
     "phase_providers": [
         "//scala/bloop:add_phase_bloop",

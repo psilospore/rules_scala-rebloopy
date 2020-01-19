@@ -9,10 +9,20 @@ Porting my code from https://github.com/psilospore/rules_scala_bloopy
 
 - [ ] Scala 2.11.12 gives AggreateClassPath not found error if I use the jars in external, but using ones given from `coursier fetch "org.scala-lang:scala-compiler:2.11.12"` works fine
 - [ ] Having trouble getting the compiler classpath
+- [ ] Consider adding classes to classpath instead of jar
+
+My approach may not work with incremental compilations because I'm using jars
+Jorge will look into making bloop understand jars
+
+Consider looking into metal's pants export. It recursively goes through targets to add transitive dependencies.
+Might want to do that for Bazel.
+
+But maybe do that later.
+
+
 
 ---
 
-# OG docs
 [![Build Status](https://travis-ci.org/bazelbuild/rules_scala.svg?branch=master)](https://travis-ci.org/bazelbuild/rules_scala) [![Build status](https://badge.buildkite.com/90ce5244556df74db805a3c24a703fb87458396f9e1ddd687e.svg)](https://buildkite.com/bazel/scala-rules-scala-postsubmit) [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/bazelbuild_rules_scala/Lobby)
 
 ## Overview

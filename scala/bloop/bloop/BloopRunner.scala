@@ -6,32 +6,23 @@ import java.util
 import java.util.concurrent.Executors
 
 import bloop.config.Config.Scala
+import bloop.config.{Config => BloopConfig}
+import bloop.launcher.bsp.BspBridge
+import bloop.launcher.core.Shell
+import bloop.launcher.{Launcher => BloopLauncher}
+import ch.epfl.scala.bsp4j._
 import io.bazel.rulesscala.worker.{GenericWorker, Processor}
 import net.sourceforge.argparse4j.ArgumentParsers
 import net.sourceforge.argparse4j.impl.Arguments
-import bloop.config.{Config => BloopConfig}
-import bloop.launcher.LauncherStatus.SuccessfulRun
-import bloop.launcher.{Launcher => BloopLauncher}
-import bloop.launcher.bsp.BspBridge
-import bloop.launcher.core.Shell
-import ch.epfl.scala.bsp4j.{BuildClient, BuildServer, DidChangeBuildTarget, LogMessageParams, PublishDiagnosticsParams, ScalaBuildServer, ShowMessageParams, TaskFinishParams, TaskProgressParams, TaskStartParams}
-import org.eclipse.lsp4j.jsonrpc.{Launcher => LspLauncher}
-import ch.epfl.scala.bsp4j._
-import bloop.config.{Config => BloopConfig}
-import bloop.launcher.LauncherStatus.SuccessfulRun
-import bloop.launcher.{Launcher => BloopLauncher}
-import bloop.launcher.bsp.BspBridge
 import net.sourceforge.argparse4j.inf.Namespace
 import org.eclipse.lsp4j.jsonrpc.{Launcher => LspLauncher}
 
-import scala.compat.java8.FutureConverters._
 import scala.collection.JavaConverters._
-import scala.concurrent.Promise
+import scala.compat.java8.FutureConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Promise
 import scala.concurrent.duration.Duration
-import scala.io.Codec
-import scala.util.Try
+import scala.concurrent.{Await, Promise}
+
 
 trait BloopServer extends BuildServer with ScalaBuildServer
 
@@ -100,10 +91,11 @@ object BloopUtil {
           new BuildClientCapabilities(List("scala").asJava)
         )
 
-        bloopServer.buildInitialize(initBuildParams).toScala.map(initializeResults => {
+
+        Await.result(bloopServer.buildInitialize(initBuildParams).toScala.map(initializeResults => {
           System.err.println(s"initialized: Results $initializeResults")
           bloopServer.onBuildInitialized()
-        })
+        }), Duration.Inf)
 
         bloopServer
 
@@ -125,16 +117,17 @@ object BloopRunner extends GenericWorker(new BloopProcessor({
 
 class BloopProcessor(bloopServer: BloopServer) extends Processor {
 
+  private val pwd = {
+    val uncleanPath = FileSystems.getDefault().getPath(".").toAbsolutePath.toString
+    uncleanPath.substring(0, uncleanPath.size - 2)
+  }
+
   /**
    * namespace.getList[File] is bonked
    *
    * @param str
    */
   private def parseFileList(namespace: Namespace, key: String): List[Path] = {
-    val pwd = {
-      val uncleanPath = FileSystems.getDefault().getPath(".").toAbsolutePath.toString
-      uncleanPath.substring(0, uncleanPath.size - 2)
-    }
     Option(namespace.getString(key)).fold(
       List[Path]()
     )(
@@ -142,6 +135,23 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
         relPath => Paths.get(s"$pwd/$relPath").toRealPath()
       )
     )
+  }
+
+
+  /**
+   * Fetch the jars needed for the scala compiler from the classpath.
+   * The jars needed are specified in BUILD
+   * TODO different versions need additional libraries like JLine
+   */
+  private def getScalaJarsFromCP(): (List[Path], String) = {
+    val scalaCPs = Set("io_bazel_rules_scala_scala_compiler", "io_bazel_rules_scala_scala_library", "io_bazel_rules_scala_scala_reflect", "io_bazel_rules_scala_scala_xml")
+    val classPaths = System.getProperty("java.class.path").split(":").toList
+    val paths = classPaths.filter(cp => scalaCPs.exists(cp.contains)).map(s => Paths.get(s"$pwd/$s").toRealPath())
+
+    val re = raw".*scala-.*-(2.*).jar".r
+    val version = paths.head.toString match {case re(s) => s}
+
+    (paths, version)
   }
 
   //Does this run once per target? if so create a bloop config and create compile request here
@@ -157,29 +167,26 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
     parser.addArgument("--label").required(true)
     parser.addArgument("--sources").`type`(Arguments.fileType)
     parser.addArgument("--target_classpath").`type`(Arguments.fileType)
-    parser.addArgument("--compiler_classpath")
     parser.addArgument("--build_file_path").`type`(Arguments.fileType)
     parser.addArgument("--bloopDir").`type`(Arguments.fileType)
+    parser.addArgument("--output").`type`(Arguments.fileType)
 
     val namespace = parser.parseArgsOrFail(argsArrayBuffer.toArray)
 
+    val output = namespace.get[File]("output").toPath
     val label = namespace.getString("label")
-    val compilerClasspath = Paths.get("/private/var/tmp/_bazel_syedajafri/ad86228950bcb07c687f46ad51824bd1/external/io_bazel_rules_scala_scala_compiler/scala-compiler-2.12.10.jar") ::
-      parseFileList(namespace, "compiler_classpath") //TODO just has lib and reflect
     val srcs = parseFileList(namespace, "sources")
     val classpath = parseFileList(namespace, "target_classpath")
-
-    //    System.err.println(srcs.toAbsolutePath)
-
-    System.err.println(label)
-
     val workspaceDir = namespace.get[File]("bloopDir").toPath
+
     val bloopDir = workspaceDir.resolve(".bloop").toAbsolutePath
     val bloopOutDir = bloopDir.resolve("out").toAbsolutePath
     val projectOutDir = bloopOutDir.resolve(label).toAbsolutePath
     val projectClassesDir = projectOutDir.resolve("classes").toAbsolutePath
     val bloopConfigPath = bloopDir.resolve(s"$label.json")
     Files.createDirectories(projectClassesDir)
+
+    val (scalaJars, scalaVersion) = getScalaJarsFromCP()
 
     val bloopConfig = BloopConfig.File(
       version = BloopConfig.File.LatestVersion,
@@ -195,9 +202,9 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
         `scala` = Some(Scala(
           "org.scala-lang",
           "scala-compiler",
-          "2.12.10", //TODO
+          scalaVersion,
           List(),
-          compilerClasspath,
+          scalaJars,
           None,
           None
         )),
@@ -209,12 +216,14 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
       )
     )
 
+
     Files.write(bloopConfigPath, bloop.config.toStr(bloopConfig).getBytes)
 
     val buildTargetId = List(new BuildTargetIdentifier(s"file://$workspaceDir?id=$label"))
     val compileParams = new CompileParams(buildTargetId.asJava)
 
-    scala.concurrent.Await.result(bloopServer.buildTargetCompile(compileParams).toScala, Duration.Inf)
+    Await.result(bloopServer.buildTargetCompile(compileParams).toScala, Duration.Inf)
 
+    Files.write(output, s"--generatedClasses\n$projectClassesDir".getBytes)
   }
 }
