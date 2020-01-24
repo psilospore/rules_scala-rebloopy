@@ -140,6 +140,7 @@ def _phase_compile(
 
     # TODO: simplify the return values and use provider
     print("Compiling %s" % ctx.label.name)
+    # p.bloop.findmehiii is available sometimes here
     return struct(
         class_jar = out.class_jar,
         coverage = out.coverage,

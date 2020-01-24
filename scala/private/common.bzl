@@ -68,7 +68,7 @@ def _collect_jars_when_dependency_analyzer_is_off(
     deps_providers = []
 
 
-    dump(dep_targets, "dep_targets")
+#    dump(dep_targets, "dep_targets")
 
     for dep_target in dep_targets:
         # we require a JavaInfo for dependencies
@@ -92,9 +92,9 @@ def _collect_jars_when_dependency_analyzer_is_off(
             )
 
 
-    dump(compile_jars, "compile_jars")
-    dump(runtime_jars, "runtime_jars")
-    dump(plus_one_deps_compile_jars, "plus_one_deps_compile_jars")
+#    dump(compile_jars, "compile_jars")
+#    dump(runtime_jars, "runtime_jars")
+#    dump(plus_one_deps_compile_jars, "plus_one_deps_compile_jars")
 #    [][1]
 
 

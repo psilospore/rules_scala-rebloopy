@@ -208,3 +208,6 @@ I see the compiler classpath is available for unused_deps_anal
 
 
 Alright so now I got it working for one project
+
+
+At the end I can compare bazel out to the previous bazel out

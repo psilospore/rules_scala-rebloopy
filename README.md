@@ -4,9 +4,17 @@ A very hacky WIP bloop integration with Bazel. It's pretty messy in here but hop
 
 Porting my code from https://github.com/psilospore/rules_scala_bloopy
 
+Clone bazel-deps and run
+```
+bazel run //:parse -- generate -r /Users/syedajafri/dev/rules_scala-rebloopy -s 3rdparty/workspace.bzl -d dependencies.yaml
+```
 
 ## TODOs
 
+- [x] Create bloop config files
+- [x] Compile targets using BSP
+- [ ] Create jars from classes
+- [ ] Replace compile phase
 - [ ] Scala 2.11.12 gives AggreateClassPath not found error if I use the jars in external, but using ones given from `coursier fetch "org.scala-lang:scala-compiler:2.11.12"` works fine
 - [ ] Having trouble getting the compiler classpath
 - [ ] Consider adding classes to classpath instead of jar
@@ -20,6 +28,115 @@ Might want to do that for Bazel.
 But maybe do that later.
 
 
+## What I've done so far
+
+Copied from previous WIP in rules scala annex but describes what's happening
+
+I'm generating a bloop config for one target then `bloop compile ABC:A` works fine
+I use bloop launcher and then I send a BSP request.
+It generates the classfiles but doesn't seem to put it in `out/ABC:A/classes/` like a specify
+instead it can be found in `out/ABC:A/bloop-internal-classes/`
+
+
+A `.bloop` directory is made in the workspace.
+Given we have a project with 4 targets and 3 scala files with the following structure
+
+```
+ABC/
+    BUILD: containing targets A, B, C, and C_run
+    src/
+        A.scala
+        B.scala (depends on A)
+        C.scala (depends on B and has main)
+```
+
+and the BUILD file looks like so:
+
+```
+load("@rules_scala_annex//rules:scala.bzl", "scala_binary", "scala_library")
+
+scala_binary(
+    name = "C_run",
+    srcs = glob(["C.scala"]),
+    visibility = ["//visibility:public"],
+    deps = ["C"]
+)
+
+scala_library(
+    name = "C",
+    srcs = glob(["C.scala"]),
+    visibility = ["//visibility:public"],
+    deps = ["B"]
+)
+
+scala_library(
+    name = "B",
+    srcs = glob(["B.scala"]),
+    visibility = ["//visibility:public"],
+    deps = ["A"]
+)
+
+scala_library(
+    name = "A",
+    srcs = glob(["A.scala"]),
+    visibility = ["//visibility:public"]
+)
+```
+
+I want to generate the following:
+
+```
+.bloop/
+    ABC:A.json
+    ABC:B.json
+    ABC:C.json
+    ABC:C_run.json
+    out/
+        ABC:A/
+            classes/
+                A.class
+        ABC:B/
+            classes/
+                B.class
+        ABC:C/
+            classes/
+                C.class
+        ABC:C_run/ (Not sure if this will contain classes
+```
+
+You can see the project I'm testing it on here: https://github.com/psilospore/local_rules_scala
+
+Each of the json files are bloop config files and each target has a config file associated with it.
+
+Example ABC:B.json will look something like this
+
+```json
+{
+    "version" : "1.1.2",
+    "project" : {
+        "name" : "ABC:B",
+        "directory" : "/Users/syedajafri/dev/bazelExample/ABC",
+        "sources" : [
+            "/Users/syedajafri/dev/bazelExample/ABC/B.scala"
+        ],
+        "dependencies" : [
+             "ABC:A" 
+        ],
+        "classpath" : [
+             "/Users/syedajafri/dev/bazelExample/.bloop/out/ABC:A/classes"
+        ],
+        "out" : "/Users/syedajafri/dev/bazelExample/.bloop/out/ABC:B",
+        "classesDir" : "/Users/syedajafri/dev/bazelExample/.bloop/out/ABC:B/classes",
+        "scala" : { ... }
+    }
+}
+```
+
+You can see B has a dependency on A and the classpath has A's generated class files. `ABC:C.json` would look similar to this.
+
+At this point you can then run `bloop compile ABC:A` or any of the other targets and it would send a BSP request to Bloop I believe.
+
+We could also send a BSP request to compile ourselves. 
 
 ---
 

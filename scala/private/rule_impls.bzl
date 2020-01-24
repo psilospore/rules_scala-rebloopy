@@ -415,6 +415,7 @@ def compile_or_empty(
         unused_dependency_checker_mode,
         unused_dependency_checker_ignored_targets,
         deps_providers):
+
     # We assume that if a srcjar is present, it is not empty
     if len(ctx.files.srcs) + len(srcjars.to_list()) == 0:
         _build_nosrc_jar(ctx)
@@ -520,6 +521,7 @@ def compile_or_empty(
             merged_provider = java_common.merge([scala_compilation_provider, java_jar.java_compilation_provider])
         else:
             merged_provider = scala_compilation_provider
+
 
         return struct(
             class_jar = ctx.outputs.jar,

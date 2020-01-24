@@ -13,7 +13,6 @@ def phase_bloop(ctx, p):
     args = ctx.actions.args()
     labelName = "%s:%s" % (ctx.label.package, ctx.label.name)
 
-
     args = ctx.actions.args()
     args.add("--label", labelName)
     args.add_all("--sources", ctx.files.srcs)
@@ -26,21 +25,23 @@ def phase_bloop(ctx, p):
     args.set_param_file_format("multiline")
     args.use_param_file("@%s", use_always = True)
 
-    file = ctx.actions.declare_file("%s.bloopOut.txt" % ctx.label.name)
-
-    args.add("--output", file.path)
+    args.add("--output", ctx.outputs.bloop_runner.path)
 
     ctx.actions.run(
-        outputs = [file],
+        outputs = [ctx.outputs.bloop_runner],
         arguments = ["--jvm_flag=-Dfile.encoding=UTF-8", args],
         executable = ctx.executable._bloop, # Run bloop runner with args
         execution_requirements = {"supports-workers": "1"},
         mnemonic = "Bloop"
     )
 
+    #TODO reproduce this might be able to not have some options to test it out
+    dump(p.compile, "compile")
+
     return struct(
-        o = file
+        findmehiiii = ctx.outputs.bloop_runner
     )
+
 #    ctx.actions.write(
 #        output = ctx.outputs.bloop_testrunner,
 #        content = "",
