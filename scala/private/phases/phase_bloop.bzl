@@ -25,6 +25,8 @@ def phase_bloop(ctx, p):
     args.set_param_file_format("multiline")
     args.use_param_file("@%s", use_always = True)
 
+    args.add("--manifest", ctx.outputs.manifest.path)
+
     args.add("--output", ctx.outputs.bloop_runner.path)
 
     ctx.actions.run(

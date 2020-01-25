@@ -1,6 +1,6 @@
 package io.bazel.rules_scala.bloop
 
-import java.io.{File, InputStream}
+import java.io.{File, FileFilter, InputStream}
 import java.nio.file.{FileSystems, Files, Path, Paths}
 import java.util
 import java.util.concurrent.Executors
@@ -11,11 +11,13 @@ import bloop.launcher.bsp.BspBridge
 import bloop.bloopgun.core.Shell
 import bloop.launcher.{Launcher => BloopLauncher}
 import ch.epfl.scala.bsp4j._
-//import io.bazel.rulesscala.jar.{JarCreator, JarHelper}
+import io.bazel.rulesscala.jar.{JarCreator, JarHelper}
 import io.bazel.rulesscala.worker.{GenericWorker, Processor}
 import net.sourceforge.argparse4j.ArgumentParsers
 import net.sourceforge.argparse4j.impl.Arguments
 import net.sourceforge.argparse4j.inf.Namespace
+import org.apache.commons.io.FileUtils
+import org.apache.commons.io.filefilter.{DirectoryFileFilter, NameFileFilter, WildcardFileFilter}
 import org.eclipse.lsp4j.jsonrpc.{Launcher => LspLauncher}
 
 import scala.collection.JavaConverters._
@@ -171,6 +173,7 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
     parser.addArgument("--build_file_path").`type`(Arguments.fileType)
     parser.addArgument("--bloopDir").`type`(Arguments.fileType)
     parser.addArgument("--output").`type`(Arguments.fileType)
+    parser.addArgument("--manifest").`type`(Arguments.fileType)
 
     val namespace = parser.parseArgsOrFail(argsArrayBuffer.toArray)
 
@@ -179,6 +182,7 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
     val srcs = parseFileList(namespace, "sources")
     val classpath = parseFileList(namespace, "target_classpath")
     val workspaceDir = namespace.get[File]("bloopDir").toPath
+    val manifestPath = namespace.getString("manifest")
 
     val bloopDir = workspaceDir.resolve(".bloop").toAbsolutePath
     val bloopOutDir = bloopDir.resolve("out").toAbsolutePath
@@ -217,13 +221,23 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
       )
     )
 
-
     Files.write(bloopConfigPath, bloop.config.toStr(bloopConfig).getBytes)
 
     val buildTargetId = List(new BuildTargetIdentifier(s"file://$workspaceDir?id=$label"))
     val compileParams = new CompileParams(buildTargetId.asJava)
 
+    //TODO no Await
     Await.result(bloopServer.buildTargetCompile(compileParams).toScala, Duration.Inf)
+
+    //TODO could use projectClassesDir but it contains semantic db and bloop internal classes. Maybe bloop should put that elsewhere?
+    val tempJarFiles = Files.createTempDirectory(s"$label-jar")
+    FileUtils.copyDirectory(projectClassesDir.toFile, tempJarFiles.toFile, (pathname: File) => {
+      val pathStr = pathname.toString
+      !(pathStr.contains("bloop-internal-classes") || pathStr.contains("semanticdb"))
+    }, true)
+
+    JarCreator.buildJar(Array("-m", manifestPath, "/Users/syedajafri/dev/example.jar", tempJarFiles.toString))
+
 
     Files.write(output, s"--generatedClasses\n$projectClassesDir".getBytes)
   }

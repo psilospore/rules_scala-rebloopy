@@ -27,9 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Collection;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
@@ -255,31 +253,47 @@ public class JarCreator extends JarHelper {
 
   public static void buildJar(String[] args) throws IOException {
     if (args.length < 1) {
-      System.err.println("usage: CreateJar [-m manifest] output [root directories]");
+      System.err.println("usage: CreateJar [-m manifest] [-i ignoredDirs] output [root directories]");
       System.exit(1);
     }
 
     int idx = 0;
     String manifestFile = null;
+    Optional<String> ignoredDirs = Optional.empty();
+
     if (args[0].equals("-m")) {
       manifestFile = args[1];
       idx = 2;
     }
+
+    if (args[idx].equals("-i")) {
+      ignoredDirs = Optional.of(args[idx + 1]);
+      System.out.println(args[idx + 1]);
+      idx+=2;
+    }
+
+    System.out.println(ignoredDirs);
+
     String output = args[idx];
     JarCreator createJar = new JarCreator(output);
     createJar.setManifestFile(manifestFile);
     for (int i = (idx + 1); i < args.length; i++) {
       String thisName = args[i];
-      Path f = Paths.get(thisName);
-      if (JarHelper.isJar(f)) {
-        createJar.addJar(f);
-      } else {
-        createJar.addDirectory(f);
+      System.out.println(thisName);
+      boolean ignore = !ignoredDirs.map(thisName::contains).orElse(false);
+      if (ignore) {
+        Path f = Paths.get(thisName);
+        if (JarHelper.isJar(f)) {
+          createJar.addJar(f);
+        } else {
+          createJar.addDirectory(f);
+        }
+        createJar.setNormalize(true);
+        createJar.setCompression(true);
+        createJar.execute();
       }
     }
-    createJar.setNormalize(true);
-    createJar.setCompression(true);
-    createJar.execute();
+
   }
 
   /** A simple way to create Jar file using the JarCreator class. */

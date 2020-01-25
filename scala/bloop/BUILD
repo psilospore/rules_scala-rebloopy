@@ -28,7 +28,9 @@ scala_binary(
         "//3rdparty/jvm/ch/epfl/scala:bsp4j",
         "//3rdparty/jvm/ch/epfl/scala:bloop_config",
         "//3rdparty/jvm/ch/epfl/scala:bloop_launcher",
-        "//3rdparty/jvm/org/scala_lang/modules:scala_java8_compat"
+        "//3rdparty/jvm/org/scala_lang/modules:scala_java8_compat",
+        "//src/java/io/bazel/rulesscala/jar",
+        "//3rdparty/jvm/commons_io:commons_io",
     ],
     unused_dependency_checker_mode = "warn", #TODO I'm using the scala compiler libs but from the classpath
 )
