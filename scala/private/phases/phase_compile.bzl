@@ -9,6 +9,8 @@ load(
     "pack_source_jars",
 )
 
+load("//tools:dump.bzl", "dump")
+
 def phase_binary_compile(ctx, p):
     args = struct(
         buildijar = False,
@@ -117,6 +119,7 @@ def _phase_compile(
         implicit_junit_deps_needed_for_java_compilation,
         unused_dependency_checker_ignored_targets,
         unused_dependency_checker_mode):
+#    dump(ctx.outputs, "ctx.outputs")
     manifest = ctx.outputs.manifest
     jars = p.collect_jars.compile_jars
     rjars = p.collect_jars.transitive_runtime_jars
@@ -140,7 +143,7 @@ def _phase_compile(
 
     # TODO: simplify the return values and use provider
     print("Compiling %s" % ctx.label.name)
-    # p.bloop.findmehiii is available sometimes here
+    # p.bloop.* is available sometimes here. Like if not in unused dep analze
     return struct(
         class_jar = out.class_jar,
         coverage = out.coverage,

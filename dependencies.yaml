@@ -47,5 +47,5 @@ dependencies:
       version: 1.2.5
       lang: scala
     bloop-launcher:
-      version: 1.2.5
+      version: 1.4.0-RC1
       lang: scala

@@ -20,11 +20,9 @@ scala_import(
 scala_import(
     name = "bloop_launcher",
     exports = [
-        "//3rdparty/jvm/com/zaxxer:nuprocess",
-        "//3rdparty/jvm/io/get_coursier:coursier",
-        "//3rdparty/jvm/io/get_coursier:coursier_cache_2_12",
-        "//3rdparty/jvm/org/scala_lang:scala_library",
-        "//3rdparty/jvm/org/scala_sbt/ipcsocket:ipcsocket"
+        "//3rdparty/jvm/net/java/dev/jna:jna",
+        "//3rdparty/jvm/net/java/dev/jna:jna_platform",
+        "//3rdparty/jvm/org/scala_lang:scala_library"
     ],
     jars = [
         "//external:jar/ch/epfl/scala/bloop_launcher_2_12"

@@ -32,6 +32,7 @@ def phase_bloop(ctx, p):
         arguments = ["--jvm_flag=-Dfile.encoding=UTF-8", args],
         executable = ctx.executable._bloop, # Run bloop runner with args
         execution_requirements = {"supports-workers": "1"},
+        progress_message = "Bloop Runner for %s" % ctx.label,
         mnemonic = "Bloop"
     )
 

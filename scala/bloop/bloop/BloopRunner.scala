@@ -8,9 +8,10 @@ import java.util.concurrent.Executors
 import bloop.config.Config.Scala
 import bloop.config.{Config => BloopConfig}
 import bloop.launcher.bsp.BspBridge
-import bloop.launcher.core.Shell
+import bloop.bloopgun.core.Shell
 import bloop.launcher.{Launcher => BloopLauncher}
 import ch.epfl.scala.bsp4j._
+//import io.bazel.rulesscala.jar.{JarCreator, JarHelper}
 import io.bazel.rulesscala.worker.{GenericWorker, Processor}
 import net.sourceforge.argparse4j.ArgumentParsers
 import net.sourceforge.argparse4j.impl.Arguments
