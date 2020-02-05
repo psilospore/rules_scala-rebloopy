@@ -11,6 +11,7 @@ import bloop.launcher.bsp.BspBridge
 import bloop.bloopgun.core.Shell
 import bloop.launcher.{Launcher => BloopLauncher}
 import ch.epfl.scala.bsp4j._
+import com.google.gson.Gson
 import io.bazel.rulesscala.jar.{JarCreator, JarHelper}
 import io.bazel.rulesscala.worker.{GenericWorker, Processor}
 import net.sourceforge.argparse4j.ArgumentParsers
@@ -31,8 +32,19 @@ trait BloopServer extends BuildServer with ScalaBuildServer
 
 
 object BloopUtil {
+
+  //This is dupped but it's in bloop vs bloop-config
+  class BloopExtraBuildParams(){
+    val ownsBuildFiles: Boolean = true
+  }
+
   //At the moment just print results
-  val printClient = new BuildClient {
+  val buildClient = new BuildClient {
+
+    def afterBuildTaskFinish(bti: String) = {
+      println("afterBuildTaskFinish", bti)
+    }
+
     override def onBuildShowMessage(params: ShowMessageParams): Unit = println("onBuildShowMessage", params)
 
     override def onBuildLogMessage(params: LogMessageParams): Unit = println("onBuildLogMessage", params)
@@ -76,24 +88,28 @@ object BloopUtil {
           .setExecutorService(es)
           .setInput(socket.getInputStream)
           .setOutput(socket.getOutputStream)
-          .setLocalService(printClient)
+          .setLocalService(buildClient)
           .create()
 
         launcher.startListening()
         val bloopServer = launcher.getRemoteProxy
 
-        printClient.onConnectWithServer(bloopServer)
+        buildClient.onConnectWithServer(bloopServer)
 
         System.err.println("attempting build initialize")
 
-        val initBuildParams = new InitializeBuildParams(
-          "bsp",
-          "1.3.4",
-          "2.0",
-          s"file:///Users/syedajafri/dev/bazelExample", //TODO don't hardcode
-          new BuildClientCapabilities(List("scala").asJava)
-        )
-
+        val initBuildParams = {
+          val p = new InitializeBuildParams(
+            "bazel",
+            "1.3.4",
+            "2.0.0-M4",
+            s"file:///Users/syedajafri/dev/bazelExample", //TODO don't hardcode
+            new BuildClientCapabilities(List("scala").asJava)
+          )
+          val gson = new Gson()
+          p.setData(gson.toJsonTree(new BloopExtraBuildParams()))
+          p
+        }
 
         Await.result(bloopServer.buildInitialize(initBuildParams).toScala.map(initializeResults => {
           System.err.println(s"initialized: Results $initializeResults")
@@ -101,7 +117,6 @@ object BloopUtil {
         }), Duration.Inf)
 
         bloopServer
-
       }
     }
   }
@@ -174,6 +189,7 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
     parser.addArgument("--bloopDir").`type`(Arguments.fileType)
     parser.addArgument("--output").`type`(Arguments.fileType)
     parser.addArgument("--manifest").`type`(Arguments.fileType)
+    parser.addArgument("--jarOut").`type`(Arguments.fileType)
 
     val namespace = parser.parseArgsOrFail(argsArrayBuffer.toArray)
 
@@ -183,6 +199,7 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
     val classpath = parseFileList(namespace, "target_classpath")
     val workspaceDir = namespace.get[File]("bloopDir").toPath
     val manifestPath = namespace.getString("manifest")
+    val jarOut = namespace.getString("jarOut")
 
     val bloopDir = workspaceDir.resolve(".bloop").toAbsolutePath
     val bloopOutDir = bloopDir.resolve("out").toAbsolutePath
@@ -224,21 +241,25 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
     Files.write(bloopConfigPath, bloop.config.toStr(bloopConfig).getBytes)
 
     val buildTargetId = List(new BuildTargetIdentifier(s"file://$workspaceDir?id=$label"))
+
     val compileParams = new CompileParams(buildTargetId.asJava)
 
-    //TODO no Await
-    Await.result(bloopServer.buildTargetCompile(compileParams).toScala, Duration.Inf)
+    val compile = bloopServer.buildTargetCompile(compileParams).toScala.map(cr => {
+      //TODO for some reason ABC:A/classes did have the output I needed but now there's no output.
+      val tempJarFiles = Files.createTempDirectory(s"$label-jar")
+      FileUtils.copyDirectory(projectClassesDir.toFile, tempJarFiles.toFile, (pathname: File) => {
+        val pathStr = pathname.toString
+        !(pathStr.contains("bloop-internal-classes") || pathStr.contains("semanticdb"))
+      }, true)
 
-    //TODO could use projectClassesDir but it contains semantic db and bloop internal classes. Maybe bloop should put that elsewhere?
-    val tempJarFiles = Files.createTempDirectory(s"$label-jar")
-    FileUtils.copyDirectory(projectClassesDir.toFile, tempJarFiles.toFile, (pathname: File) => {
-      val pathStr = pathname.toString
-      !(pathStr.contains("bloop-internal-classes") || pathStr.contains("semanticdb"))
-    }, true)
+      JarCreator.buildJar(Array("-m", manifestPath, jarOut, tempJarFiles.toString))
 
-    JarCreator.buildJar(Array("-m", manifestPath, "/Users/syedajafri/dev/example.jar", tempJarFiles.toString))
+      Files.write(output, s"--generatedClasses\n$projectClassesDir".getBytes)
+      ()
+    })
+
+    Await.result(compile, Duration.Inf)
 
 
-    Files.write(output, s"--generatedClasses\n$projectClassesDir".getBytes)
   }
 }

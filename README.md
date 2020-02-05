@@ -18,6 +18,7 @@ bazel run //:parse -- generate -r /Users/syedajafri/dev/rules_scala-rebloopy -s 
 - [ ] Scala 2.11.12 gives AggreateClassPath not found error if I use the jars in external, but using ones given from `coursier fetch "org.scala-lang:scala-compiler:2.11.12"` works fine
 - [ ] Having trouble getting the compiler classpath
 - [ ] Consider adding classes to classpath instead of jar
+- [ ] Avoid Awaits
 
 My approach may not work with incremental compilations because I'm using jars
 Jorge will look into making bloop understand jars

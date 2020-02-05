@@ -29,8 +29,12 @@ def phase_bloop(ctx, p):
 
     args.add("--output", ctx.outputs.bloop_runner.path)
 
+    preventConflict = "preventConflict" # When I replace the compile phase I can remove this
+    jarOut = ctx.actions.declare_file(ctx.label.name + preventConflict + ".jar")
+    args.add("--jarOut", jarOut.path)
+
     ctx.actions.run(
-        outputs = [ctx.outputs.bloop_runner],
+        outputs = [ctx.outputs.bloop_runner, jarOut],
         arguments = ["--jvm_flag=-Dfile.encoding=UTF-8", args],
         executable = ctx.executable._bloop, # Run bloop runner with args
         execution_requirements = {"supports-workers": "1"},
