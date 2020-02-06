@@ -28,6 +28,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Promise}
 
 
+
 trait BloopServer extends BuildServer with ScalaBuildServer
 
 

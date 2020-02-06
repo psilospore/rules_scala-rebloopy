@@ -145,13 +145,8 @@ def _phase_compile(
     print("Compiling %s" % ctx.label.name)
     # p.bloop.* is available sometimes here. Like if not in unused dep analze
     return struct(
-        class_jar = out.class_jar,
         coverage = out.coverage,
         full_jars = out.full_jars,
-        ijar = out.ijar,
-        ijars = out.ijars,
         rjars = depset(out.full_jars, transitive = [rjars]),
-        java_jar = out.java_jar,
-        source_jars = pack_source_jars(ctx) + out.source_jars,
         merged_provider = out.merged_provider,
     )

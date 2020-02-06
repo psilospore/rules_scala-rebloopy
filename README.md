@@ -13,12 +13,13 @@ bazel run //:parse -- generate -r /Users/syedajafri/dev/rules_scala-rebloopy -s 
 
 - [x] Create bloop config files
 - [x] Compile targets using BSP
-- [ ] Create jars from classes
+- [x] Create jars from classes
 - [ ] Replace compile phase
 - [ ] Scala 2.11.12 gives AggreateClassPath not found error if I use the jars in external, but using ones given from `coursier fetch "org.scala-lang:scala-compiler:2.11.12"` works fine
-- [ ] Having trouble getting the compiler classpath
-- [ ] Consider adding classes to classpath instead of jar
-- [ ] Avoid Awaits
+- [ ] Consider adding classes to classpath instead of jar (maybe)
+- [ ] Avoid Await/private/var/tmp/_bazel_syedajafri/ad86228950bcb07c687f46ad51824bd1/external/io_bazel_rules_scala/scala/private/rules/scala_library.bzls
+- [ ] Enable code coverage with jacoco
+- [ ] Compile java
 
 My approach may not work with incremental compilations because I'm using jars
 Jorge will look into making bloop understand jars

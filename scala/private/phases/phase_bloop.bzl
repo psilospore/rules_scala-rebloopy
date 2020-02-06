@@ -1,5 +1,5 @@
 load("//tools:dump.bzl", "dump")
-
+load("//scala/private:rule_impls.bzl", "empty_coverage_struct")
 #
 # PHASE: phase bloop
 #
@@ -30,11 +30,13 @@ def phase_bloop(ctx, p):
     args.add("--output", ctx.outputs.bloop_runner.path)
 
     preventConflict = "preventConflict" # When I replace the compile phase I can remove this
-    jarOut = ctx.actions.declare_file(ctx.label.name + preventConflict + ".jar")
-    args.add("--jarOut", jarOut.path)
+    full_jars = ctx.actions.declare_file(ctx.label.name + preventConflict + ".jar")
+    args.add("--jarOut", full_jars.path)
+    rjars = p.collect_jars.transitive_runtime_jars
+
 
     ctx.actions.run(
-        outputs = [ctx.outputs.bloop_runner, jarOut],
+        outputs = [ctx.outputs.bloop_runner, full_jars],
         arguments = ["--jvm_flag=-Dfile.encoding=UTF-8", args],
         executable = ctx.executable._bloop, # Run bloop runner with args
         execution_requirements = {"supports-workers": "1"},
@@ -44,9 +46,14 @@ def phase_bloop(ctx, p):
 
     #TODO reproduce this might be able to not have some options to test it out
     dump(p.compile, "compile")
+    dump(p.compile.rjars.to_list(), "rjars")
 
     return struct(
-        findmehiiii = ctx.outputs.bloop_runner
+        findmehiiii = ctx.outputs.bloop_runner,
+        full_jars = [full_jars],
+        coverage = [empty_coverage_struct],
+        rjars = depset([full_jars], transitive = [rjars]),
+
     )
 
 #    ctx.actions.write(

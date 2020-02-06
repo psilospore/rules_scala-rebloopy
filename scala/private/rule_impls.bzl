@@ -39,7 +39,7 @@ _scala_extension = ".scala"
 
 _srcjar_extension = ".srcjar"
 
-_empty_coverage_struct = struct(
+empty_coverage_struct = struct(
     instrumented_files = struct(),
     providers = [],
     replacements = {},
@@ -424,13 +424,8 @@ def compile_or_empty(
 
         #  no need to build ijar when empty
         return struct(
-            class_jar = ctx.outputs.jar,
-            coverage = _empty_coverage_struct,
+            coverage = empty_coverage_struct,
             full_jars = [ctx.outputs.jar],
-            ijar = ctx.outputs.jar,
-            ijars = [ctx.outputs.jar],
-            java_jar = False,
-            source_jars = [],
             merged_provider = scala_compilation_provider,
         )
     else:
@@ -522,6 +517,7 @@ def compile_or_empty(
         else:
             merged_provider = scala_compilation_provider
 
+#        dump(full_jars, "full_jars")
 
         return struct(
             class_jar = ctx.outputs.jar,
@@ -849,7 +845,7 @@ def pack_source_jars(ctx):
 
 def _jacoco_offline_instrument(ctx, input_jar):
     if not ctx.configuration.coverage_enabled or not hasattr(ctx.attr, "_code_coverage_instrumentation_worker"):
-        return _empty_coverage_struct
+        return empty_coverage_struct
 
     output_jar = ctx.actions.declare_file(
         "{}-offline.jar".format(input_jar.basename.split(".")[0]),

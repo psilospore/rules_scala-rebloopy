@@ -211,3 +211,5 @@ Alright so now I got it working for one project
 
 
 At the end I can compare bazel out to the previous bazel out
+
+Ok so now I just need 
