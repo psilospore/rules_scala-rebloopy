@@ -34,9 +34,13 @@ def phase_bloop(ctx, p):
     args.add("--jarOut", full_jars.path)
     rjars = p.collect_jars.transitive_runtime_jars
 
+    # TODO
+    statsfile = ctx.actions.declare_file(ctx.label.name + preventConflict + ".statsfile")
+    args.add("--statsfile", statsfile)
 
     ctx.actions.run(
-        outputs = [ctx.outputs.bloop_runner, full_jars],
+        outputs = [ctx.outputs.bloop_runner, full_jars, statsfile],
+        inputs = [ctx.outputs.manifest],
         arguments = ["--jvm_flag=-Dfile.encoding=UTF-8", args],
         executable = ctx.executable._bloop, # Run bloop runner with args
         execution_requirements = {"supports-workers": "1"},

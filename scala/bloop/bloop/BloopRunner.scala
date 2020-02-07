@@ -151,7 +151,7 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
       List[Path]()
     )(
       _.split(", ").toList.map(
-        relPath => Paths.get(s"$pwd/$relPath").toRealPath()
+        relPath => Paths.get(s"$pwd/$relPath").toAbsolutePath//.toRealPath()
       )
     )
   }
@@ -191,6 +191,8 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
     parser.addArgument("--output").`type`(Arguments.fileType)
     parser.addArgument("--manifest").`type`(Arguments.fileType)
     parser.addArgument("--jarOut").`type`(Arguments.fileType)
+    parser.addArgument("--statsfile").`type`(Arguments.fileType)
+
 
     val namespace = parser.parseArgsOrFail(argsArrayBuffer.toArray)
 
@@ -260,7 +262,7 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
     })
 
     Await.result(compile, Duration.Inf)
-
+    Files.write(namespace.get[File]("statsfile").toPath, s"build_time 4000".getBytes)
 
   }
 }
