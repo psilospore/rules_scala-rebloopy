@@ -29,7 +29,7 @@ def phase_bloop(ctx, p):
 
     args.add("--output", ctx.outputs.bloop_runner.path)
 
-    preventConflict = "preventConflict" # When I replace the compile phase I can remove this
+    preventConflict = "" # ""preventConflict" # When I replace the compile phase I can remove this
     full_jars = ctx.actions.declare_file(ctx.label.name + preventConflict + ".jar")
     args.add("--jarOut", full_jars.path)
     rjars = p.collect_jars.transitive_runtime_jars
@@ -44,15 +44,35 @@ def phase_bloop(ctx, p):
         mnemonic = "Bloop"
     )
 
-    #TODO reproduce this might be able to not have some options to test it out
-    dump(p.compile, "compile")
-    dump(p.compile.rjars.to_list(), "rjars")
+    if hasattr(p, "compile"):
+        #TODO reproduce this might be able to not have some options to test it out
+        dump(p.compile, "compile")
+        print(p.compile.coverage.instrumented_files.to_json())
+        dump(p.compile.rjars.to_list(), "rjars")
+
+    # Move to create scala_compilation_provider maybe
+    exports = []
+    if hasattr(ctx.attr, "exports"):
+        exports = [dep[JavaInfo] for dep in ctx.attr.exports]
+    runtime_deps = []
+    if hasattr(ctx.attr, "runtime_deps"):
+        runtime_deps = [dep[JavaInfo] for dep in ctx.attr.runtime_deps]
+
+    scala_compilation_provider = JavaInfo(
+          output_jar = full_jars,
+          compile_jar = full_jars,
+          source_jar = None,
+          deps = p.collect_jars.deps_providers,
+          exports = exports,
+          runtime_deps = runtime_deps,
+      )
 
     return struct(
         findmehiiii = ctx.outputs.bloop_runner,
         full_jars = [full_jars],
-        coverage = [empty_coverage_struct],
+        coverage = empty_coverage_struct,
         rjars = depset([full_jars], transitive = [rjars]),
+        merged_provider = scala_compilation_provider
 
     )
 

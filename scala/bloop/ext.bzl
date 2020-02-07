@@ -43,9 +43,9 @@ def _add_phase_bloop_singleton_implementation(ctx):
         _ScalaRulePhase(
             custom_phases = [
                 #TODO plan is to make it a phase at the end then replace it later. Use phases before compile.
-                #("=", "compile", "bloop", _phase_bloop),
+                ("=", "compile", "compile", _phase_bloop),
 #                ("$", "", "bloop", _phase_bloop)
-                ("after", "compile", "bloop", _phase_bloop)
+#                ("after", "compile", "bloop", _phase_bloop)
             ],
         ),
     ]

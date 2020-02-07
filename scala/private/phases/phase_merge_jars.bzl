@@ -8,7 +8,10 @@ load(
     "merge_jars",
 )
 
+load("//tools:dump.bzl", "dump")
+
 def phase_merge_jars(ctx, p):
+    dump(p, "p HELLO")
     merge_jars(
         actions = ctx.actions,
         deploy_jar = ctx.outputs.deploy_jar,

@@ -32,6 +32,8 @@ load(
 )
 load("@io_bazel_rules_scala//scala:jars_to_labels.bzl", "JarsToLabelsInfo")
 load("@bazel_tools//tools/jdk:toolchain_utils.bzl", "find_java_runtime_toolchain", "find_java_toolchain")
+load("//tools:dump.bzl", "dump")
+
 
 _java_extension = ".java"
 
@@ -531,12 +533,18 @@ def compile_or_empty(
         )
 
 def _create_scala_compilation_provider(ctx, ijar, source_jar, deps_providers):
+    dump(ijar, "ijar")
+    dump(ctx.outputs.jar, "ctx.outputs.jar")
+    dump(deps_providers, "deps_providers")
     exports = []
     if hasattr(ctx.attr, "exports"):
         exports = [dep[JavaInfo] for dep in ctx.attr.exports]
     runtime_deps = []
     if hasattr(ctx.attr, "runtime_deps"):
         runtime_deps = [dep[JavaInfo] for dep in ctx.attr.runtime_deps]
+
+    dump(exports, "exports")
+    dump(runtime_deps, "runtime_deps")
     return JavaInfo(
         output_jar = ctx.outputs.jar,
         compile_jar = ijar,
