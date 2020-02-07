@@ -1,5 +1,6 @@
 # Bloop integration
 
+## Intro
 A very hacky WIP bloop integration with Bazel. It's pretty messy in here but hopefully it won't be for long.
 
 Porting my code from https://github.com/psilospore/rules_scala_bloopy
@@ -14,7 +15,7 @@ bazel run //:parse -- generate -r /Users/syedajafri/dev/rules_scala-rebloopy -s 
 - [x] Create bloop config files
 - [x] Compile targets using BSP
 - [x] Create jars from classes
-- [ ] Replace compile phase
+- [x] Replace compile phase
 - [ ] Scala 2.11.12 gives AggreateClassPath not found error if I use the jars in external, but using ones given from `coursier fetch "org.scala-lang:scala-compiler:2.11.12"` works fine
 - [ ] Consider adding classes to classpath instead of jar (maybe)
 - [ ] Avoid Await/private/var/tmp/_bazel_syedajafri/ad86228950bcb07c687f46ad51824bd1/external/io_bazel_rules_scala/scala/private/rules/scala_library.bzls
@@ -24,12 +25,7 @@ bazel run //:parse -- generate -r /Users/syedajafri/dev/rules_scala-rebloopy -s 
 My approach may not work with incremental compilations because I'm using jars
 Jorge will look into making bloop understand jars
 
-Consider looking into metal's pants export. It recursively goes through targets to add transitive dependencies.
-Might want to do that for Bazel.
-
-But maybe do that later.
-
-
+~~~~
 ## What I've done so far
 
 Copied from previous WIP in rules scala annex but describes what's happening

@@ -188,21 +188,20 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
     parser.addArgument("--target_classpath").`type`(Arguments.fileType)
     parser.addArgument("--build_file_path").`type`(Arguments.fileType)
     parser.addArgument("--bloopDir").`type`(Arguments.fileType)
-    parser.addArgument("--output").`type`(Arguments.fileType)
     parser.addArgument("--manifest").`type`(Arguments.fileType)
     parser.addArgument("--jarOut").`type`(Arguments.fileType)
     parser.addArgument("--statsfile").`type`(Arguments.fileType)
 
 
     val namespace = parser.parseArgsOrFail(argsArrayBuffer.toArray)
-
-    val output = namespace.get[File]("output").toPath
     val label = namespace.getString("label")
     val srcs = parseFileList(namespace, "sources")
     val classpath = parseFileList(namespace, "target_classpath")
     val workspaceDir = namespace.get[File]("bloopDir").toPath
     val manifestPath = namespace.getString("manifest")
     val jarOut = namespace.getString("jarOut")
+    val statsfile = namespace.get[File]("statsfile").toPath
+
 
     val bloopDir = workspaceDir.resolve(".bloop").toAbsolutePath
     val bloopOutDir = bloopDir.resolve("out").toAbsolutePath
@@ -248,7 +247,7 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
     val compileParams = new CompileParams(buildTargetId.asJava)
 
     val compile = bloopServer.buildTargetCompile(compileParams).toScala.map(cr => {
-      //TODO for some reason ABC:A/classes did have the output I needed but now there's no output.
+      System.err.println(cr)
       val tempJarFiles = Files.createTempDirectory(s"$label-jar")
       FileUtils.copyDirectory(projectClassesDir.toFile, tempJarFiles.toFile, (pathname: File) => {
         val pathStr = pathname.toString
@@ -257,12 +256,12 @@ class BloopProcessor(bloopServer: BloopServer) extends Processor {
 
       JarCreator.buildJar(Array("-m", manifestPath, jarOut, tempJarFiles.toString))
 
-      Files.write(output, s"--generatedClasses\n$projectClassesDir".getBytes)
+//      Files.write(output, s"--generatedClasses\n$projectClassesDir".getBytes)
       ()
     })
 
     Await.result(compile, Duration.Inf)
-    Files.write(namespace.get[File]("statsfile").toPath, s"build_time 4000".getBytes)
+    Files.write(statsfile, s"build_time 4000".getBytes)
 
   }
 }

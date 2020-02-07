@@ -30,9 +30,6 @@ ext_add_phase_bloop = {
 #            default = False,
 #        ),
     },
-    "outputs": {
-        "bloop_runner": "%{name}.bloopOut.txt",
-    },
     "phase_providers": [
         "//scala/bloop:add_phase_bloop",
     ],

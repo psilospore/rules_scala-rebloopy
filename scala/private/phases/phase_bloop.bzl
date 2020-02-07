@@ -1,14 +1,7 @@
 load("//tools:dump.bzl", "dump")
 load("//scala/private:rule_impls.bzl", "empty_coverage_struct")
-#
+
 # PHASE: phase bloop
-#
-# Outputs to format the scala files when it is explicitly specified
-# Can use the following phases probably. Referecences them like so p.collect_jars.
-#            ("scalac_provider", phase_scalac_provider),
-#            ("write_manifest", phase_write_manifest),
-#            ("unused_deps_checker", phase_unused_deps_checker),
-#            ("collect_jars", phase_common_collect_jars),
 def phase_bloop(ctx, p):
     args = ctx.actions.args()
     labelName = "%s:%s" % (ctx.label.package, ctx.label.name)
@@ -27,19 +20,17 @@ def phase_bloop(ctx, p):
 
     args.add("--manifest", ctx.outputs.manifest.path)
 
-    args.add("--output", ctx.outputs.bloop_runner.path)
-
-    preventConflict = "" # ""preventConflict" # When I replace the compile phase I can remove this
+    preventConflict = "" # "junk" # Used for debugging purposes. When I want to compare with the current compile phase I use this.
     full_jars = ctx.actions.declare_file(ctx.label.name + preventConflict + ".jar")
     args.add("--jarOut", full_jars.path)
     rjars = p.collect_jars.transitive_runtime_jars
 
-    # TODO
+    # TODO output
     statsfile = ctx.actions.declare_file(ctx.label.name + preventConflict + ".statsfile")
     args.add("--statsfile", statsfile)
 
     ctx.actions.run(
-        outputs = [ctx.outputs.bloop_runner, full_jars, statsfile],
+        outputs = [full_jars, statsfile],
         inputs = [ctx.outputs.manifest],
         arguments = ["--jvm_flag=-Dfile.encoding=UTF-8", args],
         executable = ctx.executable._bloop, # Run bloop runner with args
@@ -72,7 +63,6 @@ def phase_bloop(ctx, p):
       )
 
     return struct(
-        findmehiiii = ctx.outputs.bloop_runner,
         full_jars = [full_jars],
         coverage = empty_coverage_struct,
         rjars = depset([full_jars], transitive = [rjars]),
