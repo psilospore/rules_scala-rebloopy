@@ -24,6 +24,9 @@ def phase_bloop(ctx, p):
     args.add_joined("--targetClasspath", dependencyJars, join_with=", ")
     args.add_joined("--bloopDependencies", projectDeps.to_list(), join_with=", " )
 
+    print("Label: %s depends on" % projectName)
+    print(projectDeps.to_list())
+
     args.add("--manifest", ctx.outputs.manifest.path)
 
     full_jars = ctx.actions.declare_file(ctx.label.name + ".jar")

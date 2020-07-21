@@ -3,9 +3,11 @@ package io.bazel.rules_scala.bloop
 import java.io.{File, InputStream}
 import java.nio.file.{FileSystems, Files, Path, Paths}
 import java.util.concurrent.{Executors, TimeUnit}
+import com.github.plokhotnyuk.jsoniter_scala.core._
 
 import bloop.bloopgun.core.Shell
 import bloop.config.Config.Scala
+import bloop.config.ConfigCodecs._
 import bloop.config.{Config => BloopConfig}
 import bloop.launcher.bsp.BspBridge
 import bloop.launcher.{Launcher => BloopLauncher}
@@ -83,7 +85,7 @@ object BloopUtil {
       dir
     )
 
-    BloopLauncher.connectToBloopBspServer("1.1.2", false, bspBridge, List()) match {
+    (BloopLauncher.connectToBloopBspServer("1.4.3", false, bspBridge, List()) match {
       case Right(Right(Some(socket))) => {
         val es = Executors.newCachedThreadPool()
         val launcher = new LspLauncher.Builder[BloopServer]()
@@ -105,7 +107,7 @@ object BloopUtil {
           val p = new InitializeBuildParams(
             "bazel",
             "1.3.4",
-            "2.0.0-M4",
+            "2.0.0-M11",
             packageDir,
             new BuildClientCapabilities(List("scala").asJava)
           )
@@ -115,14 +117,19 @@ object BloopUtil {
         }
 
         //TODO ZIO
-        Await.result(bloopServer.buildInitialize(initBuildParams).toScala.map(initializeResults => {
+        Await.resul(bloopServer.buildInitialize(initBuildParams).toScala.map(initializeResults => {
           System.err.println(s"initialized: Results $initializeResults")
           bloopServer.onBuildInitialized()
         }), Duration.Inf)
 
-        bloopServer
+        Some(bloopServer)
       }
-    }
+      case a@_ => {
+        println(s"Unexpected case ${a}")
+        None
+      }
+
+    }).get
   }
 }
 
@@ -180,6 +187,7 @@ object WorkerUtils {
 
   def buildArgParser: ArgumentParser = {
     val parser = ArgumentParsers.newFor("bloop").addHelp(true).defaultFormatWidth(80).fromFilePrefix("@").build
+    //Example    --label ABC:A --sources ABC/A.scala --targetClasspath external/io_bazel_rules_scala_scala_library/scala-library-2.12.10.jar, external/io_bazel_rules_scala_scala_reflect/scala-reflect-2.12.10.jar --manifest bazel-out/darwin-fastbuild/bin/ABC/A_MANIFEST.MF --jarOut bazel-out/darwin-fastbuild/bin/ABC/A.jar --statsfile bazel-out/darwin-fastbuild/bin/ABC/A.statsfile --bloopProjectConfig ABC/BUILD --bloopProjectOutput ABC/BUILD
     parser.addArgument("--label").required(true)
     parser.addArgument("--sources").`type`(Arguments.fileType)
     parser.addArgument("--targetClasspath").`type`(Arguments.fileType)
@@ -209,7 +217,8 @@ object BloopWorker extends Worker.Interface {
 
   //Implements bazel worker interface so work is called externally. I will create or get a bloop server the given package
   def work(args: Array[String]) {
-    System.err.println("what")
+    System.err.println("WHATTTTTT")
+    System.err.println(args.mkString(" "))
 
     var argsArrayBuffer = scala.collection.mutable.ArrayBuffer[String]()
     for (i <- args.indices) {
@@ -221,7 +230,7 @@ object BloopWorker extends Worker.Interface {
     //TODO can I make all of this an environment or just put it in a case class
     val label = namespace.getString("label")
     val srcs = parseFileList(namespace, "sources")
-    val classpath = parseFileList(namespace, "target_classpath")
+    val classpath = parseFileList(namespace, "targetClasspath")
     val bloopProjectConfig = namespace.get[File]("bloopProjectConfig").toPath
 
     val bloopOutDir = namespace.get[File]("bloopProjectOutput").toPath
@@ -251,7 +260,11 @@ object BloopWorker extends Worker.Interface {
         project = BloopConfig.Project(
           name = label,
           directory = packageDir,
+          workspaceDir = None, //TODO this is new
           sources = srcs.map(_.toRealPath()),
+          sourcesGlobs = None, //TODO this is new
+          sourceRoots = None, //TODO this is new
+          tags = None, //TODO this is new
           dependencies = bloopDependencies,
           classpath = classpath,
           out = bloopOutDir,
@@ -270,11 +283,15 @@ object BloopWorker extends Worker.Interface {
           sbt = None,
           test = None,
           platform = None,
-          resolution = None
+          resolution = None,
         )
       )
 
-      Files.write(bloopProjectConfig, bloop.config.toStr(bloopConfig).getBytes)
+      val outputStream = Files.newOutputStream(bloopProjectConfig)
+      writeToStream(bloopConfig, outputStream)
+      outputStream.close()
+
+      bloopProjectConfig
     })
 
     def compile(bloopServer: BloopServer): Task[CompileResult] = {

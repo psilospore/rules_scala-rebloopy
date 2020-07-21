@@ -3,8 +3,7 @@ load("//scala:scala_import.bzl", "scala_import")
 scala_import(
     name = "bloop_config",
     exports = [
-        "//3rdparty/jvm/io/circe:circe_derivation_2_12",
-        "//3rdparty/jvm/io/circe:circe_parser_2_12",
+        "//3rdparty/jvm/com/github/plokhotnyuk/jsoniter_scala:jsoniter_scala_core_2_12",
         "//3rdparty/jvm/org/scala_lang:scala_library"
     ],
     jars = [
@@ -22,6 +21,7 @@ scala_import(
     exports = [
         "//3rdparty/jvm/net/java/dev/jna:jna",
         "//3rdparty/jvm/net/java/dev/jna:jna_platform",
+        "//3rdparty/jvm/org/scala_lang/modules:scala_xml_2_12",
         "//3rdparty/jvm/org/scala_lang:scala_library"
     ],
     jars = [

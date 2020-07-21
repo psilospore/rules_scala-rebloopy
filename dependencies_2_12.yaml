@@ -45,13 +45,13 @@ dependencies:
       lang: scala
   ch.epfl.scala:
     bsp4j:
-      version: 2.0.0-M4+10-61e61e87
+      version: 2.0.0-M11
       lang: java
     bloop-config:
-      version: 1.2.5
+      version: 1.4.3
       lang: scala
     bloop-launcher:
-      version: 1.4.0-RC1
+      version: 1.4.3
       lang: scala
   me.vican.jorge:
     snailgun-core:
