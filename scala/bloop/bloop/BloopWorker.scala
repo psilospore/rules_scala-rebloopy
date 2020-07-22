@@ -3,8 +3,8 @@ package io.bazel.rules_scala.bloop
 import java.io.{File, InputStream}
 import java.nio.file.{FileSystems, Files, Path, Paths}
 import java.util.concurrent.{Executors, TimeUnit}
-import com.github.plokhotnyuk.jsoniter_scala.core._
 
+import com.github.plokhotnyuk.jsoniter_scala.core._
 import bloop.bloopgun.core.Shell
 import bloop.config.Config.Scala
 import bloop.config.ConfigCodecs._
@@ -27,6 +27,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Promise}
 import zio._
+import zio.blocking.Blocking
 import zio.console._
 import zio.clock.Clock
 import zio.duration._
@@ -70,7 +71,7 @@ object BloopUtil {
     override def onBuildTargetDidChange(params: DidChangeBuildTarget): Unit = println("onBuildTargetDidChange", params)
   }
 
-  def initBloop(packageDir: String): BloopServer = {
+  def initBloop(packageDir: String): ZIO[Blocking, Throwable, BloopServer] = {
     val emptyInputStream = new InputStream() {
       override def read(): Int = -1
     }
@@ -85,20 +86,29 @@ object BloopUtil {
       dir
     )
 
-    (BloopLauncher.connectToBloopBspServer("1.4.3", false, bspBridge, List()) match {
-      case Right(Right(Some(socket))) => {
-        val es = Executors.newCachedThreadPool()
-        val launcher = new LspLauncher.Builder[BloopServer]()
-          .setRemoteInterface(classOf[BloopServer])
-          .setExecutorService(es)
-          .setInput(socket.getInputStream)
-          .setOutput(socket.getOutputStream)
-          .setLocalService(buildClient)
-          .create()
+    val maybeSocket = BloopLauncher.connectToBloopBspServer("1.4.3", false, bspBridge, List()) match {
+      case Right(Right(Some(socket))) => Some(socket)
+      case a@_ => {
+        println(s"Unexpected case ${a}")
+        None
+      }
+    }
 
-        launcher.startListening()
-        val bloopServer = launcher.getRemoteProxy
+    val es = Executors.newCachedThreadPool()
 
+    for {
+      socket <- ZIO.fromOption(maybeSocket).mapError(_ => new Throwable("socket not created from bloop launcher"))
+      launcher = new LspLauncher.Builder[BloopServer]()
+        .setRemoteInterface(classOf[BloopServer])
+        .setExecutorService(es)
+        .setInput(socket.getInputStream)
+        .setOutput(socket.getOutputStream)
+        .setLocalService(buildClient)
+        .create()
+
+      bloopServer = launcher.getRemoteProxy()
+
+      initializeResults <- {
         buildClient.onConnectWithServer(bloopServer)
 
         System.err.println(s"attempting build initialize for $packageDir")
@@ -106,7 +116,7 @@ object BloopUtil {
         val initBuildParams = {
           val p = new InitializeBuildParams(
             "bazel",
-            "1.3.4",
+            "1.0.0",
             "2.0.0-M11",
             packageDir,
             new BuildClientCapabilities(List("scala").asJava)
@@ -116,20 +126,16 @@ object BloopUtil {
           p
         }
 
-        //TODO ZIO
-        Await.resul(bloopServer.buildInitialize(initBuildParams).toScala.map(initializeResults => {
-          System.err.println(s"initialized: Results $initializeResults")
-          bloopServer.onBuildInitialized()
-        }), Duration.Inf)
+        ZIO.fromFutureJava(bloopServer.buildInitialize(initBuildParams))
 
-        Some(bloopServer)
       }
-      case a@_ => {
-        println(s"Unexpected case ${a}")
-        None
-      }
+    } yield {
+      System.err.println(s"initialized: Results $initializeResults")
+      bloopServer.onBuildInitialized()
 
-    }).get
+      bloopServer
+    }
+
   }
 }
 
@@ -312,15 +318,19 @@ object BloopWorker extends Worker.Interface {
     val packageDirStr = packageDir.toString
     def getTime: ZIO[Clock, Nothing, Long] = ZIO.accessM[Clock] { x => x.get.currentTime(TimeUnit.MILLISECONDS) } //TODO delete
 
-    val bloopServer = bloopServersByPackageRef.getOrElseUpdate(packageDirStr, {BloopUtil.initBloop(packageDirStr)})
-
-    val program: ZIO[Clock with Console, Throwable, Unit] = for {
+    val program: ZIO[Clock with Console with blocking.Blocking, Throwable, Unit] = for {
+      bloopServer <- bloopServersByPackageRef.get(packageDirStr) match {
+        case Some(bloopServer) => ZIO(bloopServer)
+        case None => BloopUtil.initBloop(packageDirStr).flatMap((bloopServer) => {
+          ZIO.effectTotal(bloopServersByPackageRef.put(packageDirStr, bloopServer)).map(_ => bloopServer)
+        })
+      }
       totalTime <- (generateBloopConfig *> compile(bloopServer) *> copyJar).timed
       _ <- writeStatsFile(totalTime._1.toMillis)
       _ <- ZIO.sleep(1.seconds) //TODO don't do this
     } yield { () } //TODO
 
-    Runtime.global.unsafeRun(program.provideLayer(Clock.live and Console.live))
+    Runtime.global.unsafeRun(program.provideLayer(Clock.live and Console.live and blocking.Blocking.live))
 
   }
 }
